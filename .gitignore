@@ -1,0 +1,25 @@
+# Dependances
+node_modules/
+
+# Builds
+dist/
+.next/
+build/
+
+# Variables d environnement reelles (jamais les .example)
+.env
+.env.local
+.env.test
+.env.recette
+.env.production
+!.env.*.example
+
+# Logs
+*.log
+
+# Systeme
+.DS_Store
+Thumbs.db
+
+# Couverture de tests
+coverage/
