@@ -10,3 +10,5 @@ export class HealthController {
     };
   }
 }
+
+const erreurVolontaire: any = 1;
