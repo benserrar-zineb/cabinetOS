@@ -48,10 +48,30 @@ jobs:
       - name: Architecture boundaries
         run: pnpm run check:architecture
 
+      - name: Apply database migrations and RLS policies
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0000_*.sql
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0001_*.sql
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -c "
+            CREATE ROLE cabinetos_app LOGIN PASSWORD 'cabinetos_app_pw' NOSUPERUSER NOBYPASSRLS;
+            GRANT CONNECT ON DATABASE cabinetos_test TO cabinetos_app;
+            GRANT USAGE ON SCHEMA public TO cabinetos_app;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO cabinetos_app;
+            GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO cabinetos_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO cabinetos_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO cabinetos_app;
+          "
+
       - name: Test
         run: pnpm run test
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/cabinetos_test
+          DATABASE_URL: postgres://cabinetos_app:cabinetos_app_pw@localhost:5432/cabinetos_test
+
+      - name: Isolation tests (bloquant, couverture >= 90% exigee)
+        run: pnpm run test:isolation
+        env:
+          DATABASE_URL: postgres://cabinetos_app:cabinetos_app_pw@localhost:5432/cabinetos_test
+          ADMIN_DATABASE_URL: postgres://postgres:postgres@localhost:5432/cabinetos_test
 
       - name: Build
         run: pnpm run build

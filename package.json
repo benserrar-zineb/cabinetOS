@@ -9,7 +9,8 @@
     "check:architecture": "pnpm --filter @cabinetos/api run check:architecture",
     "test": "pnpm --filter @cabinetos/api run test && pnpm --filter @cabinetos/web run test",
     "db:check": "pnpm --filter @cabinetos/api run db:check",
-    "build": "pnpm --filter @cabinetos/api run build && pnpm --filter @cabinetos/web run build"
+    "build": "pnpm --filter @cabinetos/api run build && pnpm --filter @cabinetos/web run build",
+    "test:isolation": "pnpm --filter @cabinetos/api run test:isolation"
   },
   "keywords": [],
   "author": "",

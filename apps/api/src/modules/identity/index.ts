@@ -1,4 +1,4 @@
-export { IdentityModule } from './identity.module';
+﻿export { IdentityModule } from './identity.module';
 export {
   users,
   sessions,
@@ -8,3 +8,4 @@ export {
   sessionsRelations,
   accountsRelations,
 } from './infrastructure/schema';
+export { findUserById, updateUser, softDeleteUser } from './infrastructure/user.queries';

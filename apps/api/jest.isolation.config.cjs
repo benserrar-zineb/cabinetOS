@@ -1,0 +1,28 @@
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  rootDir: '../..',
+  roots: ['<rootDir>/tests/isolation'],
+  testRegex: '.*\\.spec\\.ts$',
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/apps/api/tsconfig.isolation.json' }],
+  },
+  setupFiles: ['<rootDir>/apps/api/test/jest.setup.ts'],
+  collectCoverage: true,
+  collectCoverageFrom: [
+    '<rootDir>/apps/api/src/modules/shared/database/database.service.ts',
+    '<rootDir>/apps/api/src/modules/organization/infrastructure/membership.queries.ts',
+    '<rootDir>/apps/api/src/modules/settings/infrastructure/setting.queries.ts',
+    '<rootDir>/apps/api/src/modules/audit/infrastructure/audit-event.queries.ts',
+    '<rootDir>/apps/api/src/modules/notifications/infrastructure/notification.queries.ts',
+  ],
+  coverageProvider: 'v8',
+  coverageThreshold: {
+    global: {
+      statements: 90,
+      branches: 90,
+      functions: 90,
+      lines: 90,
+    },
+  },
+};

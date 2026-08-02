@@ -22,7 +22,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/cabinetos_dev
+      DATABASE_URL: postgres://cabinetos_app:cabinetos_app_pw@postgres:5432/cabinetos_dev
       NODE_ENV: development
       CHOKIDAR_USEPOLLING: "true"
     volumes:

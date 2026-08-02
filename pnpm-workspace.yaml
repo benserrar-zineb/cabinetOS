@@ -8,3 +8,12 @@ allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+
+supportedArchitectures:
+  os:
+    - linux
+  cpu:
+    - x64
+  libc:
+    - glibc
+

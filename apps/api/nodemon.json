@@ -1,0 +1,6 @@
+﻿{
+  "watch": ["src"],
+  "ext": "ts",
+  "legacyWatch": true,
+  "exec": "node -r ts-node/register -r reflect-metadata src/main.ts"
+}

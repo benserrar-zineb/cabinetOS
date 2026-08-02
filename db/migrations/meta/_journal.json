@@ -8,6 +8,20 @@
       "when": 1785321961659,
       "tag": "0000_mute_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785430630030,
+      "tag": "0001_enable-rls-policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785669005798,
+      "tag": "0002_file-objects-rls-policy",
+      "breakpoints": true
     }
   ]
 }
