@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   pull_request:
@@ -35,6 +35,13 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+
+      - name: Install PostgreSQL 18 client tools (pg_dump refuse un serveur plus recent que lui)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-18
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
