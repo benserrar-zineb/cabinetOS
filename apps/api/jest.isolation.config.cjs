@@ -5,8 +5,9 @@ module.exports = {
   roots: ['<rootDir>/tests/isolation'],
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/apps/api/tsconfig.isolation.json' }],
+    '^.+\\.(t|j|mj)s$': ['ts-jest', { tsconfig: '<rootDir>/apps/api/tsconfig.isolation.json' }],
   },
+  transformIgnorePatterns: [],
   setupFiles: ['<rootDir>/apps/api/test/jest.setup.ts'],
   collectCoverage: true,
   collectCoverageFrom: [

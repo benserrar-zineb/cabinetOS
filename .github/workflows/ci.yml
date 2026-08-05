@@ -75,12 +75,16 @@ jobs:
         run: pnpm run test
         env:
           DATABASE_URL: postgres://cabinetos_app:cabinetos_app_pw@localhost:5432/cabinetos_test
+          BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long
+          BETTER_AUTH_BASE_URL: http://localhost:3000
 
       - name: Isolation tests (bloquant, couverture >= 90% exigee)
         run: pnpm run test:isolation
         env:
           DATABASE_URL: postgres://cabinetos_app:cabinetos_app_pw@localhost:5432/cabinetos_test
           ADMIN_DATABASE_URL: postgres://postgres:postgres@localhost:5432/cabinetos_test
+          BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long
+          BETTER_AUTH_BASE_URL: http://localhost:3000
 
       - name: Build
         run: pnpm run build
