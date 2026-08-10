@@ -70,11 +70,13 @@ jobs:
             ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO cabinetos_app;
             ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO cabinetos_app;
           "
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0003_*.sql
 
       - name: Test
         run: pnpm run test
         env:
           DATABASE_URL: postgres://cabinetos_app:cabinetos_app_pw@localhost:5432/cabinetos_test
+          ADMIN_DATABASE_URL: postgres://postgres:postgres@localhost:5432/cabinetos_test
           BETTER_AUTH_SECRET: ci-test-secret-at-least-32-characters-long
           BETTER_AUTH_BASE_URL: http://localhost:3000
 

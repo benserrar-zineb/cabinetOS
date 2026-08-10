@@ -14,13 +14,23 @@ import {
 // (1) niveau applicatif : withOrganizationScope refuse explicitement (TASK-008).
 // (2) niveau base de donnees : une requete directe sans contexte ne voit rien (TASK-010).
 
+const ADMIN_DATABASE_URL = process.env.ADMIN_DATABASE_URL;
+
 describe('Isolation multi-tenant - contexte manquant', () => {
   let moduleRef: TestingModule;
   let databaseService: DatabaseService;
   let rawPool: Pool;
+  let adminPool: Pool;
   let orgId: string;
 
   beforeAll(async () => {
+    if (!ADMIN_DATABASE_URL) {
+      throw new Error(
+        'ADMIN_DATABASE_URL est requis pour ce test (nettoyage de audit_events, append-only pour le role applicatif depuis BUILD-002).',
+      );
+    }
+    adminPool = new Pool({ connectionString: ADMIN_DATABASE_URL });
+
     moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: envValidationSchema })],
       providers: [DatabaseService],
@@ -37,11 +47,12 @@ describe('Isolation multi-tenant - contexte manquant', () => {
   });
 
   afterAll(async () => {
-    await databaseService.withOrganizationScope(orgId, (tx) =>
-      tx.execute(sql`DELETE FROM audit_events WHERE organization_id = ${orgId}`),
-    );
+    // audit_events est append-only pour cabinetos_app depuis BUILD-002 : ce nettoyage
+    // de test necessite le role admin, jamais rawPool (connecte en cabinetos_app).
+    await adminPool.query('DELETE FROM audit_events WHERE organization_id = $1', [orgId]);
     await databaseService.db.execute(sql`DELETE FROM organizations WHERE id = ${orgId}`);
     await rawPool.end();
+    await adminPool.end();
     await databaseService.onModuleDestroy();
   });
 
