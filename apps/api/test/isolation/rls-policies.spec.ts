@@ -15,15 +15,25 @@ import { createNotification } from '../../src/modules/notifications/infrastructu
 // hors application, sans SET LOCAL - critere d acceptation exact de la tache.
 // file_objects ajoutee apres revue de l encadrant (EA-003) : politique manquante corrigee.
 
+const ADMIN_DATABASE_URL = process.env.ADMIN_DATABASE_URL;
+
 describe('Politiques RLS PostgreSQL (TASK-010)', () => {
   let moduleRef: TestingModule;
   let databaseService: DatabaseService;
   let rawPool: Pool;
+  let adminPool: Pool;
   let orgId: string;
   const userId = `rls-test-user-${Date.now()}`;
   const roleId = uuidv7();
 
   beforeAll(async () => {
+    if (!ADMIN_DATABASE_URL) {
+      throw new Error(
+        'ADMIN_DATABASE_URL est requis pour ce test (nettoyage de audit_events, append-only pour le role applicatif depuis BUILD-002).',
+      );
+    }
+    adminPool = new Pool({ connectionString: ADMIN_DATABASE_URL });
+
     moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: envValidationSchema })],
       providers: [DatabaseService],
@@ -67,15 +77,18 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
       Promise.all([
         tx.execute(sql`DELETE FROM memberships WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM settings WHERE organization_id = ${orgId}`),
-        tx.execute(sql`DELETE FROM audit_events WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM notifications WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM file_objects WHERE organization_id = ${orgId}`),
       ]),
     );
+    // audit_events est append-only pour cabinetos_app depuis BUILD-002 : sorti du
+    // Promise.all ci-dessus, nettoye a part via le role admin.
+    await adminPool.query('DELETE FROM audit_events WHERE organization_id = $1', [orgId]);
     await databaseService.db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
     await databaseService.db.execute(sql`DELETE FROM roles WHERE id = ${roleId}`);
     await databaseService.db.execute(sql`DELETE FROM organizations WHERE id = ${orgId}`);
     await rawPool.end();
+    await adminPool.end();
     await databaseService.onModuleDestroy();
   });
 

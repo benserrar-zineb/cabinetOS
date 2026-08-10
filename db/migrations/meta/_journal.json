@@ -22,6 +22,13 @@
       "when": 1785669005798,
       "tag": "0002_file-objects-rls-policy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786359438781,
+      "tag": "0003_audit-events-append-only",
+      "breakpoints": true
     }
   ]
 }

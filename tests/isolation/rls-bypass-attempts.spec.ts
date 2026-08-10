@@ -13,13 +13,23 @@ import {
 
 // TASK-011 - Scenario 5 : tentatives de contournement de RLS.
 
+const ADMIN_DATABASE_URL = process.env.ADMIN_DATABASE_URL;
+
 describe('Isolation multi-tenant - tentatives de contournement RLS', () => {
   let moduleRef: TestingModule;
   let databaseService: DatabaseService;
+  let adminPool: Pool;
   let orgA: { id: string };
   let orgB: { id: string };
 
   beforeAll(async () => {
+    if (!ADMIN_DATABASE_URL) {
+      throw new Error(
+        'ADMIN_DATABASE_URL est requis pour ce test (nettoyage de audit_events, append-only pour le role applicatif depuis BUILD-002).',
+      );
+    }
+    adminPool = new Pool({ connectionString: ADMIN_DATABASE_URL });
+
     moduleRef = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: envValidationSchema })],
       providers: [DatabaseService],
@@ -39,15 +49,16 @@ describe('Isolation multi-tenant - tentatives de contournement RLS', () => {
   });
 
   afterAll(async () => {
-    await databaseService.withOrganizationScope(orgA.id, (tx) =>
-      tx.execute(sql`DELETE FROM audit_events WHERE organization_id = ${orgA.id}`),
-    );
-    await databaseService.withOrganizationScope(orgB.id, (tx) =>
-      tx.execute(sql`DELETE FROM audit_events WHERE organization_id = ${orgB.id}`),
-    );
+    // audit_events est append-only pour cabinetos_app depuis BUILD-002 : ce nettoyage
+    // de test necessite le role admin, jamais withOrganizationScope (role applicatif).
+    await adminPool.query('DELETE FROM audit_events WHERE organization_id IN ($1, $2)', [
+      orgA.id,
+      orgB.id,
+    ]);
     await databaseService.db.execute(
       sql`DELETE FROM organizations WHERE id IN (${orgA.id}, ${orgB.id})`,
     );
+    await adminPool.end();
     await databaseService.onModuleDestroy();
   });
 
