@@ -61,6 +61,8 @@ jobs:
           PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0000_*.sql
           PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0001_*.sql
           PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0002_*.sql
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0004_*.sql
+          PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -f db/migrations/0005_*.sql
           PGPASSWORD=postgres psql -h localhost -U postgres -d cabinetos_test -c "
             CREATE ROLE cabinetos_app LOGIN PASSWORD 'cabinetos_app_pw' NOSUPERUSER NOBYPASSRLS;
             GRANT CONNECT ON DATABASE cabinetos_test TO cabinetos_app;
