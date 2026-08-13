@@ -769,16 +769,24 @@ tests, hors périmètre.*
 #### TASK-019 — Migration RLS + contraintes
 
 - **EA parent** : EA-007
-- **Objectif** : appliquer les deux politiques RLS, l'index d'unicité partielle du
-  CIN, et enregistrer la migration via `drizzle-kit generate --custom`.
+- **Objectif** : appliquer les deux politiques RLS et l'index d'unicité partielle du
+  CIN.
 - **Dépendances** : TASK-017, TASK-018.
-- **Livrable** : `db/migrations/000X_patient-rls-and-constraints.sql` (up + down
-  documenté, même patron que `0003_audit-events-append-only.sql`).
+- **Livrable** : deux migrations, pas une (correction constatée à l'exécution : le
+  schéma Drizzle de TASK-017/018 n'avait jamais été traduit en `CREATE TABLE` réel) —
+  `db/migrations/0004_patient-tables.sql` (auto-générée par `drizzle-kit generate`,
+  crée `patients`/`patient_records`/`patient_record_counters`) puis
+  `db/migrations/0005_patient-rls-and-cin-unique.sql` (custom, RLS + unicité CIN, up +
+  down documenté, même patron que `0003_audit-events-append-only.sql`).
 - **Critères d'acceptation** : `patients` et `patient_records` avec
   `FORCE ROW LEVEL SECURITY` ; index `patients_org_cin_unique` présent ; migration
-  réversible.
-- **Tests** : vérification manuelle en base (`\d+ patients`, `\d+ patient_records`),
-  comme fait pour `audit_events` (`\dp`).
+  0005 réversible.
+- **Tests** : vérification manuelle en base (`\d+ patients`, `\d+ patient_records`,
+  testé aussi avec de vraies données : doublon de CIN refusé dans un même cabinet,
+  accepté entre deux cabinets, CIN vide jamais compté comme doublon) — et
+  automatisée : `patients`/`patient_records` ajoutées à la suite RLS existante
+  (`apps/api/test/isolation/rls-policies.spec.ts`), qui couvrait déjà les cinq autres
+  tables Core.
 - **Hors périmètre** : le trigger `responsiblePatientRecordId` (TASK-021), les
   extensions de recherche (TASK-026).
 

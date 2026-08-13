@@ -11,6 +11,10 @@ import { upsertSetting } from '../../src/modules/settings/infrastructure/setting
 import { createAuditEvent } from '../../src/modules/audit/infrastructure/audit-event.queries';
 import { createNotification } from '../../src/modules/notifications/infrastructure/notification.queries';
 
+// TASK-019 (BUILD-002) : les deux tables Patient rejoignent cette suite -- meme
+// exigence que file_objects en son temps (EA-003) : verifier la RLS directement,
+// pas seulement dans le schema.
+
 // TASK-010 : preuve directe que les politiques RLS bloquent une requete SQL brute,
 // hors application, sans SET LOCAL - critere d acceptation exact de la tache.
 // file_objects ajoutee apres revue de l encadrant (EA-003) : politique manquante corrigee.
@@ -23,6 +27,7 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
   let rawPool: Pool;
   let adminPool: Pool;
   let orgId: string;
+  let patientId: string;
   const userId = `rls-test-user-${Date.now()}`;
   const roleId = uuidv7();
 
@@ -70,15 +75,33 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
         sql`INSERT INTO file_objects (id, organization_id, filename, mime_type, size_bytes, hash) VALUES (${uuidv7()}, ${orgId}, 'test.pdf', 'application/pdf', 1024, 'fake-hash')`,
       ),
     );
+    // patients/patient_records : pas de fonctions de requete (TASK-020), insertion
+    // directe pour verifier les politiques RLS ajoutees en TASK-019.
+    patientId = uuidv7();
+    await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(
+        sql`INSERT INTO patients (id, organization_id, first_name, last_name) VALUES (${patientId}, ${orgId}, 'RLS', 'Test')`,
+      ),
+    );
+    await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(
+        sql`INSERT INTO patient_records (id, organization_id, patient_id, sequential_number) VALUES (${uuidv7()}, ${orgId}, ${patientId}, 1)`,
+      ),
+    );
   });
 
   afterAll(async () => {
+    // patient_records avant patients : contrainte FK (patient_records.patient_id).
+    await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(sql`DELETE FROM patient_records WHERE organization_id = ${orgId}`),
+    );
     await databaseService.withOrganizationScope(orgId, (tx) =>
       Promise.all([
         tx.execute(sql`DELETE FROM memberships WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM settings WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM notifications WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM file_objects WHERE organization_id = ${orgId}`),
+        tx.execute(sql`DELETE FROM patients WHERE organization_id = ${orgId}`),
       ]),
     );
     // audit_events est append-only pour cabinetos_app depuis BUILD-002 : sorti du
@@ -92,7 +115,15 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
     await databaseService.onModuleDestroy();
   });
 
-  it.each([['memberships'], ['settings'], ['audit_events'], ['notifications'], ['file_objects']])(
+  it.each([
+    ['memberships'],
+    ['settings'],
+    ['audit_events'],
+    ['notifications'],
+    ['file_objects'],
+    ['patients'],
+    ['patient_records'],
+  ])(
     'une requete SQL directe sur %s, sans SET LOCAL, ne retourne aucune ligne (donnee pourtant presente)',
     async (table) => {
       const result = await rawPool.query(`SELECT * FROM ${table} WHERE organization_id = $1`, [
@@ -112,5 +143,15 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
       tx.execute(sql`SELECT * FROM file_objects WHERE organization_id = ${orgId}`),
     );
     expect(fileObjects.rows.length).toBeGreaterThan(0);
+
+    const patientRows = await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(sql`SELECT * FROM patients WHERE organization_id = ${orgId}`),
+    );
+    expect(patientRows.rows.length).toBeGreaterThan(0);
+
+    const patientRecordRows = await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(sql`SELECT * FROM patient_records WHERE organization_id = ${orgId}`),
+    );
+    expect(patientRecordRows.rows.length).toBeGreaterThan(0);
   });
 });

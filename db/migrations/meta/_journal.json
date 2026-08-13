@@ -29,6 +29,20 @@
       "when": 1786359438781,
       "tag": "0003_audit-events-append-only",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786626822352,
+      "tag": "0004_patient-tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786626836908,
+      "tag": "0005_patient-rls-and-cin-unique",
+      "breakpoints": true
     }
   ]
 }
