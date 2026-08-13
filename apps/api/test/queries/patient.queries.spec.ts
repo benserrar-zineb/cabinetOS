@@ -9,7 +9,9 @@ import {
   findPatientById,
   updatePatient,
   updatePatientRecordStatus,
+  ResponsibleRecordOrganizationMismatchError,
 } from '../../src/business/patient/infrastructure/patient.queries';
+import { uuidv7 } from 'uuidv7';
 
 // TASK-020 : critere d acceptation explicite -- la generation du numero de dossier
 // doit etre atomique (INSERT ... ON CONFLICT ... RETURNING), prouve ici par une
@@ -144,5 +146,54 @@ describe('patient.queries (TASK-020)', () => {
     const sequentialNumbers = results.map((r) => r.record.sequentialNumber);
     const uniqueNumbers = new Set(sequentialNumbers);
     expect(uniqueNumbers.size).toBe(concurrentCreations);
+  });
+
+  // TASK-021 : preuve du refus, pas seulement du succes (demande explicite de
+  // l encadrant a la cloture d EA-008) -- un responsable d une AUTRE organisation
+  // doit etre rejete, a la fois cote application et cote base.
+
+  it('createPatient refuse (couche applicative) un responsable appartenant a une autre organisation', async () => {
+    const responsibleInOrgB = await createPatient(databaseService, orgB.id, {
+      firstName: 'Responsable',
+      lastName: 'DansOrgB',
+    });
+
+    await expect(
+      createPatient(databaseService, orgA.id, {
+        firstName: 'Dependant',
+        lastName: 'DansOrgA',
+        responsiblePatientRecordId: responsibleInOrgB.record.id,
+      }),
+    ).rejects.toThrow(ResponsibleRecordOrganizationMismatchError);
+  });
+
+  it('un contournement de l application (insertion SQL brute avec cabinetos_app) est quand meme refuse par le trigger base', async () => {
+    const responsibleInOrgB = await createPatient(databaseService, orgB.id, {
+      firstName: 'Responsable2',
+      lastName: 'DansOrgB',
+    });
+    const dependantIdentity = await databaseService.withOrganizationScope(orgA.id, (tx) =>
+      tx
+        .execute(
+          sql`INSERT INTO patients (id, organization_id, first_name, last_name) VALUES (${uuidv7()}, ${orgA.id}, 'Contournement', 'Test') RETURNING id`,
+        )
+        .then((r) => (r.rows[0] as { id: string }).id),
+    );
+
+    // Insertion directe, SANS passer par createPatient (donc sans le controle
+    // applicatif) -- seul le trigger de la migration 0006 peut encore refuser.
+    await expect(
+      databaseService.withOrganizationScope(orgA.id, (tx) =>
+        tx.execute(sql`
+          INSERT INTO patient_records (id, organization_id, patient_id, sequential_number, responsible_patient_record_id)
+          VALUES (${uuidv7()}, ${orgA.id}, ${dependantIdentity}, 999, ${responsibleInOrgB.record.id})
+        `),
+      ),
+    ).rejects.toMatchObject({
+      cause: {
+        code: 'P0001',
+        message: expect.stringContaining('same organization'),
+      },
+    });
   });
 });
