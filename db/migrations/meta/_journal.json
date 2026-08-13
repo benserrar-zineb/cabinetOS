@@ -43,6 +43,13 @@
       "when": 1786626836908,
       "tag": "0005_patient-rls-and-cin-unique",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786641188034,
+      "tag": "0006_patient-record-responsible-same-org-trigger",
+      "breakpoints": true
     }
   ]
 }

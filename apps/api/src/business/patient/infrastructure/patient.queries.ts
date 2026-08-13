@@ -11,8 +11,14 @@ import { patients, patientRecords } from './schema';
 // meme numero (teste explicitement, voir patient.queries.spec.ts).
 //
 // Hors perimetre ici (arrivent plus tard) : validation CIN/date de naissance
-// (TASK-022), contrainte "meme organisation" pour responsiblePatientRecordId
-// (TASK-021 -- ce module ne fait aucun controle sur cette valeur pour l instant).
+// (TASK-022).
+
+export class ResponsibleRecordOrganizationMismatchError extends Error {
+  constructor() {
+    super('responsiblePatientRecordId must reference a patient record in the same organization');
+    this.name = 'ResponsibleRecordOrganizationMismatchError';
+  }
+}
 
 export interface CreatePatientInput {
   firstName: string;
@@ -39,6 +45,23 @@ export async function createPatient(
 ) {
   return databaseService.withOrganizationScope(organizationId, async (tx) => {
     const { responsiblePatientRecordId, ...identity } = data;
+
+    // TASK-021, couche applicative : verifie AVANT d ecrire, pour un message d erreur
+    // exploitable (400 propre en TASK-025) -- le trigger base (0006) est la garantie
+    // independante qui s applique meme si ce controle est court-circuite. Comme la
+    // lecture se fait via withOrganizationScope, une ligne d une autre organisation
+    // est deja invisible par RLS : "introuvable" ici signifie soit qu elle n existe
+    // pas, soit qu elle appartient a une autre organisation -- les deux cas sont a
+    // rejeter identiquement.
+    if (responsiblePatientRecordId) {
+      const [responsible] = await tx
+        .select({ id: patientRecords.id })
+        .from(patientRecords)
+        .where(eq(patientRecords.id, responsiblePatientRecordId));
+      if (!responsible) {
+        throw new ResponsibleRecordOrganizationMismatchError();
+      }
+    }
 
     const [patient] = await tx
       .insert(patients)
