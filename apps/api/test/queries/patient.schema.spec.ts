@@ -1,4 +1,9 @@
-import { patients } from '../../src/business/patient/infrastructure/schema';
+import {
+  patients,
+  patientRecords,
+  patientRecordCounters,
+  patientRecordStatusEnum,
+} from '../../src/business/patient/infrastructure/schema';
 
 // TASK-017 : critere d acceptation explicite (docs/specs/BUILD-002-patient.md) --
 // firstName/lastName non nullables, tous les autres champs metier nullables.
@@ -31,5 +36,43 @@ describe('patients schema (TASK-017)', () => {
 
   it('dateOfBirthUnknown vaut false par defaut (jamais "inconnu" par defaut)', () => {
     expect(patients.dateOfBirthUnknown.default).toBe(false);
+  });
+});
+
+// TASK-018 : critere d acceptation explicite -- sequentialNumber unique par
+// (organizationId, sequentialNumber) ; status par defaut 'active' ;
+// responsiblePatientRecordId nullable, auto-reference vers patientRecords.
+
+describe('patientRecords schema (TASK-018)', () => {
+  it('est definie, avec son enum de statut et son compteur', () => {
+    expect(patientRecords).toBeDefined();
+    expect(patientRecordStatusEnum).toBeDefined();
+    expect(patientRecordCounters).toBeDefined();
+  });
+
+  it('impose organizationId, patientId, sequentialNumber, status', () => {
+    expect(patientRecords.organizationId.notNull).toBe(true);
+    expect(patientRecords.patientId.notNull).toBe(true);
+    expect(patientRecords.sequentialNumber.notNull).toBe(true);
+    expect(patientRecords.status.notNull).toBe(true);
+    expect(patientRecords.attachedAt.notNull).toBe(true);
+  });
+
+  it("statut par defaut 'active' -- jamais archive/decede a la creation", () => {
+    expect(patientRecords.status.default).toBe('active');
+  });
+
+  it('accepte exactement trois valeurs de statut (Q3 du Decision Gate)', () => {
+    expect(patientRecordStatusEnum.enumValues).toEqual(['active', 'archived', 'deceased']);
+  });
+
+  it('responsiblePatientRecordId est nullable (dependant sans identite autonome, Q5)', () => {
+    expect(patientRecords.responsiblePatientRecordId.notNull).toBe(false);
+  });
+
+  it('patientRecordCounters demarre a 1 par organisation', () => {
+    expect(patientRecordCounters.organizationId.notNull).toBe(true);
+    expect(patientRecordCounters.nextValue.notNull).toBe(true);
+    expect(patientRecordCounters.nextValue.default).toBe(1);
   });
 });

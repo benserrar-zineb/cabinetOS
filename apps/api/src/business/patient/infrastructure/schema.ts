@@ -1,4 +1,16 @@
-import { pgTable, uuid, text, date, boolean, timestamp, index } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import {
+  pgTable,
+  uuid,
+  text,
+  date,
+  boolean,
+  integer,
+  pgEnum,
+  timestamp,
+  index,
+  unique,
+} from 'drizzle-orm/pg-core';
 import { uuidv7 } from 'uuidv7';
 import { organizations } from '../../../modules/organization';
 
@@ -49,3 +61,76 @@ export const patients = pgTable(
     index('patients_phone_idx').on(table.organizationId, table.phone),
   ],
 );
+
+// TASK-018 : table de relation cabinet-patient (ADR-0012) + compteur de numero de
+// dossier par organisation. Statut a trois valeurs actees au Decision Gate (Q3) --
+// un patient "deceased" ne doit jamais recevoir de rappel automatique (contrainte
+// pour les futurs modules, ex. Agenda -- note du Gate, pas applique ici).
+//
+// patientRecordCounters : une SEQUENCE Postgres est globale et ne se remet jamais a
+// zero par organisation -- ce compteur dedie permet un numero sequentiel propre a
+// chaque organisation. La generation atomique (UPDATE ... RETURNING) arrive en
+// TASK-020 ; ce schema ne fait que definir la table.
+//
+// responsiblePatientRecordId : auto-reference nullable (patient sans identite
+// autonome, Q5). La garantie que le responsable partage le meme organizationId
+// n est PAS portee par cette seule cle etrangere (Postgres ne le permet pas nativement
+// entre deux colonnes d une meme table sans trigger) -- defense en profondeur prevue
+// en TASK-021 (controle applicatif + trigger base), jamais laissee implicite.
+
+export const patientRecordStatusEnum = pgEnum('patient_record_status', [
+  'active',
+  'archived',
+  'deceased',
+]);
+
+export const patientRecordCounters = pgTable('patient_record_counters', {
+  organizationId: uuid('organization_id')
+    .primaryKey()
+    .references(() => organizations.id),
+  nextValue: integer('next_value').notNull().default(1),
+});
+
+export const patientRecords = pgTable(
+  'patient_records',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id),
+    sequentialNumber: integer('sequential_number').notNull(),
+    status: patientRecordStatusEnum('status').notNull().default('active'),
+    attachedAt: timestamp('attached_at').defaultNow().notNull(),
+    responsiblePatientRecordId: uuid('responsible_patient_record_id'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('patient_records_organization_id_idx').on(table.organizationId),
+    index('patient_records_patient_id_idx').on(table.patientId),
+    unique('patient_records_org_sequential_unique').on(
+      table.organizationId,
+      table.sequentialNumber,
+    ),
+  ],
+);
+
+export const patientsRelations = relations(patients, ({ many }) => ({
+  records: many(patientRecords),
+}));
+
+export const patientRecordsRelations = relations(patientRecords, ({ one }) => ({
+  patient: one(patients, { fields: [patientRecords.patientId], references: [patients.id] }),
+  responsible: one(patientRecords, {
+    fields: [patientRecords.responsiblePatientRecordId],
+    references: [patientRecords.id],
+  }),
+}));
