@@ -16,6 +16,7 @@ module.exports = {
     '<rootDir>/apps/api/src/modules/settings/infrastructure/setting.queries.ts',
     '<rootDir>/apps/api/src/modules/audit/infrastructure/audit-event.queries.ts',
     '<rootDir>/apps/api/src/modules/notifications/infrastructure/notification.queries.ts',
+    '<rootDir>/apps/api/src/business/patient/infrastructure/patient.queries.ts',
   ],
   coverageProvider: 'v8',
   coverageThreshold: {

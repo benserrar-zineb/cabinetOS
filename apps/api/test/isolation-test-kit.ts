@@ -35,3 +35,9 @@ export {
   findNotificationsByUser,
   markNotificationRead,
 } from '../src/modules/notifications/infrastructure/notification.queries';
+export {
+  createPatient,
+  findPatientById,
+  updatePatient,
+  updatePatientRecordStatus,
+} from '../src/business/patient/infrastructure/patient.queries';
