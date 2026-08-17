@@ -7,6 +7,7 @@ import { AuditModule } from './modules/audit';
 import { NotificationsModule } from './modules/notifications';
 import { SettingsModule } from './modules/settings';
 import { StorageModule } from './modules/storage';
+import { PatientModule } from './business/patient';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { StorageModule } from './modules/storage';
     NotificationsModule,
     SettingsModule,
     StorageModule,
+    PatientModule,
   ],
 })
 export class AppModule {}
