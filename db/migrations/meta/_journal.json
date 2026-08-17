@@ -50,6 +50,13 @@
       "when": 1786641188034,
       "tag": "0006_patient-record-responsible-same-org-trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786958587967,
+      "tag": "0007_patient-adr-0015-city-phone-coverage",
+      "breakpoints": true
     }
   ]
 }

@@ -28,11 +28,15 @@ export interface CreatePatientInput {
   sex?: string;
   cin?: string;
   nationalHealthId?: string;
-  phone?: string;
+  phoneCountryCode?: string;
+  phoneNationalNumber?: string;
   email?: string;
   address?: string;
+  city?: string;
   country?: string;
   language?: string;
+  coverageType?: 'cnss' | 'cnops' | 'amo' | 'mutuelle_privee' | 'sans';
+  coverageNumber?: string;
   responsiblePatientRecordId?: string;
 }
 

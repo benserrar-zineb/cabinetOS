@@ -26,7 +26,11 @@ describe('patients schema (TASK-017)', () => {
     expect(patients.sex.notNull).toBe(false);
     expect(patients.cin.notNull).toBe(false);
     expect(patients.nationalHealthId.notNull).toBe(false);
-    expect(patients.phone.notNull).toBe(false);
+    expect(patients.phoneCountryCode.notNull).toBe(false);
+    expect(patients.phoneNationalNumber.notNull).toBe(false);
+    expect(patients.city.notNull).toBe(false);
+    expect(patients.coverageType.notNull).toBe(false);
+    expect(patients.coverageNumber.notNull).toBe(false);
     expect(patients.email.notNull).toBe(false);
     expect(patients.address.notNull).toBe(false);
     expect(patients.country.notNull).toBe(false);
