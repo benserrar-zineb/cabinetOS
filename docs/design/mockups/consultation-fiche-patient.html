@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CabinetOS — Fiche patient, vue médecin (maquette)</title>
+<style>
+  :root{
+    --ink:#1A2B34; --teal:#0E6E78; --teald:#0A4C54; --grey:#6B7A82;
+    --rule:#D8DFE2; --wash:#F2F6F7; --wash2:#E8F0F1; --white:#fff;
+    --greenbg:#E7F3EC; --green:#1E7A46;
+    --shadow:0 1px 2px rgba(26,43,52,.04),0 8px 24px rgba(26,43,52,.06);
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--wash);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .topbar{background:var(--white);border-bottom:1px solid var(--rule);padding:0 24px;height:56px;display:flex;align-items:center;gap:14px}
+  .brand{font-weight:700;letter-spacing:.5px;font-size:15px}
+  .brand span{color:var(--teal)}
+  .crumb{color:var(--grey);font-size:13px;margin-left:6px}
+  .crumb b{color:var(--ink);font-weight:600}
+
+  .wrap{max-width:940px;margin:22px auto 80px;padding:0 20px}
+
+  .idstrip{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 20px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden}
+  .idstrip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal)}
+  .avatar{width:44px;height:44px;border-radius:50%;background:var(--wash2);color:var(--teald);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex:none}
+  .idmain{flex:1;min-width:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .idname{font-size:19px;font-weight:700;letter-spacing:-.2px}
+  .badge{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+  .badge.active{background:var(--greenbg);color:var(--green)}
+  .idfacts{color:var(--grey);font-size:13.5px;display:flex;gap:14px;flex-wrap:wrap}
+  .idfacts b{color:var(--ink);font-weight:600}
+  .idfacts .sep{color:var(--rule)}
+  .idstrip .more-link{font-size:13px;color:var(--teal);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;flex:none}
+  .idstrip .more-link:hover{color:var(--teald)}
+  .idactions{display:flex;gap:9px;flex:none}
+  .btn{font-family:inherit;font-size:13.5px;font-weight:600;border-radius:8px;padding:9px 15px;cursor:pointer;border:1px solid transparent;transition:.12s}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teald)}
+  .btn-ghost{background:none;color:var(--grey);border-color:var(--rule)}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--grey)}
+
+  .iddetail{max-height:0;overflow:hidden;transition:max-height .28s ease}
+  .iddetail.open{max-height:400px;margin-top:12px}
+  .iddetail-inner{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:6px 28px}
+  @media(max-width:640px){.iddetail-inner{grid-template-columns:1fr}}
+  .kv{display:flex;padding:6px 0;font-size:13.5px;border-bottom:1px solid var(--wash)}
+  .kv .k{width:110px;flex:none;color:var(--grey)}
+  .kv .v{color:var(--ink);font-weight:500}
+  .kv .v.empty{color:#A9B4BA;font-style:italic;font-weight:400}
+
+  .worklabel{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--grey);margin:22px 2px 12px;display:flex;align-items:center;gap:10px}
+  .worklabel::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+  .today{background:var(--white);border:1px solid var(--rule);border-left:3px solid var(--teal);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px}
+  .today .zhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .today h2{font-size:15px;font-weight:700;margin:0;color:var(--ink)}
+  .soon{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--teald);background:var(--wash2);border:1px solid var(--rule);border-radius:20px;padding:3px 10px;flex:none}
+  .today p{margin:0;color:var(--grey);font-size:13.5px;max-width:70ch}
+  .today .placeholder{margin-top:14px;height:64px;border:1px dashed var(--rule);border-radius:8px;background:repeating-linear-gradient(135deg,var(--wash) 0 10px,#EEF3F4 10px 20px);display:flex;align-items:center;justify-content:center;color:var(--grey);font-size:12.5px}
+
+  .zgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.zgrid{grid-template-columns:1fr}}
+  .zone{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;position:relative}
+  .zone .zhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .zone h2{font-size:14px;font-weight:700;margin:0;color:var(--ink)}
+  .zone p{margin:0;color:var(--grey);font-size:13px}
+  .zone .placeholder{margin-top:12px;height:52px;border:1px dashed var(--rule);border-radius:8px;background:repeating-linear-gradient(135deg,var(--wash) 0 10px,#EEF3F4 10px 20px)}
+  .zfull{grid-column:1/-1}
+
+  .note{max-width:940px;margin:18px auto 0;padding:0 20px;color:var(--grey);font-size:12px;display:flex;gap:8px;align-items:flex-start}
+  .note b{color:var(--teald)}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">Cabinet<span>OS</span></div>
+    <div class="crumb">Patients &rsaquo; <b>Fatima El Amrani</b></div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="idstrip">
+      <div class="avatar">FE</div>
+      <div class="idmain">
+        <span class="idname">Fatima El Amrani</span>
+        <span class="badge active">Actif</span>
+        <span class="idfacts">
+          <span><b>34 ans</b></span><span class="sep">&middot;</span>
+          <span>+212 <b>651 234 567</b></span><span class="sep">&middot;</span>
+          <span><b>CNSS</b></span><span class="sep">&middot;</span>
+          <span>Dossier <b>P-2024-0142</b></span>
+        </span>
+      </div>
+      <a class="more-link" onclick="toggleDetail()" id="detailLink">Fiche complète &#9662;</a>
+      <div class="idactions">
+        <button class="btn btn-ghost">Modifier</button>
+        <button class="btn btn-primary">Démarrer la consultation</button>
+      </div>
+    </div>
+
+    <div class="iddetail" id="iddetail">
+      <div class="iddetail-inner">
+        <div class="kv"><div class="k">Naissance</div><div class="v">12/03/1991</div></div>
+        <div class="kv"><div class="k">Sexe</div><div class="v">Féminin</div></div>
+        <div class="kv"><div class="k">CIN</div><div class="v">BK449182</div></div>
+        <div class="kv"><div class="k">Couverture</div><div class="v">CNSS <span style="color:var(--grey)">— n° 123456789</span></div></div>
+        <div class="kv"><div class="k">E-mail</div><div class="v empty">non renseigné</div></div>
+        <div class="kv"><div class="k">Adresse</div><div class="v">Rue Ibn Sina, Maârif</div></div>
+        <div class="kv"><div class="k">Ville</div><div class="v">Casablanca</div></div>
+        <div class="kv"><div class="k">Pays</div><div class="v">Maroc</div></div>
+        <div class="kv"><div class="k">Langue</div><div class="v">Français</div></div>
+      </div>
+    </div>
+
+    <div class="worklabel">Pour démarrer la consultation — modules à venir</div>
+
+    <div class="today">
+      <div class="zhead">
+        <h2>Motif de la visite &amp; contexte</h2>
+        <span class="soon">À venir</span>
+      </div>
+      <p>Ce que le médecin veut voir en premier : motif du jour, première visite ou suivi, note transmise par la secrétaire, points d'attention. Alimenté par les modules Agenda et Consultation.</p>
+      <div class="placeholder">Zone principale de travail du médecin — réservée</div>
+    </div>
+
+    <div class="zgrid">
+      <div class="zone">
+        <div class="zhead"><h2>Dernière consultation &amp; historique</h2><span class="soon">À venir</span></div>
+        <p>Date de la dernière visite, diagnostic, suivi, historique médical.</p>
+        <div class="placeholder"></div>
+      </div>
+      <div class="zone">
+        <div class="zhead"><h2>Ordonnances &amp; rendez-vous</h2><span class="soon">À venir</span></div>
+        <p>Prescriptions en cours et prochains rendez-vous.</p>
+        <div class="placeholder"></div>
+      </div>
+      <div class="zone zfull">
+        <div class="zhead"><h2>Orientations &amp; recommandations</h2><span class="soon">À venir</span></div>
+        <p>Patient adressé par ou vers un autre médecin, un laboratoire, une radiologie ou une officine — le flux du réseau CabinetOS.</p>
+        <div class="placeholder"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <span>&#9670;</span>
+    <span><b>Maquette — option B.</b> L'identité est réduite à un bandeau résumé (affiché une seule fois ; le détail complet est replié derrière « Fiche complète »). L'espace principal est donné à ce qui aidera le médecin à démarrer sa consultation — réservé aux modules à venir, mais dimensionné à sa vraie importance.</span>
+  </div>
+
+<script>
+  function toggleDetail(){
+    var d=document.getElementById('iddetail');
+    d.classList.toggle('open');
+    document.getElementById('detailLink').innerHTML = d.classList.contains('open') ? 'Fiche complète &#9652;' : 'Fiche complète &#9662;';
+  }
+</script>
+</body>
+</html>

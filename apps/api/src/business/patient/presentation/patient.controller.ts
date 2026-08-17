@@ -13,6 +13,7 @@ import { DatabaseService, RequirePermission, CurrentOrganizationId } from '../..
 import { CreatePatientDto } from './create-patient.dto';
 import { UpdatePatientDto } from './update-patient.dto';
 import { validateCin } from './cin-validation';
+import { isPlausibleEmail } from './email-validation';
 import {
   createPatient,
   findPatientById,
@@ -49,6 +50,11 @@ export class PatientController {
         'Le format du CIN ne correspond pas au format attendu (lettres puis chiffres) -- enregistre tel quel.',
       );
     }
+    if (dto.email && !isPlausibleEmail(dto.email)) {
+      warnings.push(
+        'La structure de cette adresse e-mail semble incorrecte -- enregistree telle quelle.',
+      );
+    }
 
     try {
       const created = await createPatient(this.databaseService, organizationId, dto);
@@ -83,6 +89,11 @@ export class PatientController {
     if (identity.cin && !validateCin(identity.cin).formatValid) {
       warnings.push(
         'Le format du CIN ne correspond pas au format attendu (lettres puis chiffres) -- enregistre tel quel.',
+      );
+    }
+    if (identity.email && !isPlausibleEmail(identity.email)) {
+      warnings.push(
+        'La structure de cette adresse e-mail semble incorrecte -- enregistree telle quelle.',
       );
     }
 

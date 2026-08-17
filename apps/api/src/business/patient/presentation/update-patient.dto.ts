@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsEmail, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, IsEnum } from 'class-validator';
 
 // TASK-025 : mise a jour partielle -- tous les champs optionnels, y compris
 // dateOfBirth (contrairement a la creation, pas de validation croisee ici : modifier
@@ -43,7 +43,7 @@ export class UpdatePatientDto {
   phoneNationalNumber?: string;
 
   @IsOptional()
-  @IsEmail()
+  @IsString()
   email?: string;
 
   @IsOptional()

@@ -158,6 +158,22 @@ describe('PatientController (e2e, TASK-025)', () => {
     expect(body.meta.warnings).toBeDefined();
   });
 
+  it('POST /patients avec un e-mail mal forme reussit quand meme, avec un avertissement (spec design, jamais bloquant)', async () => {
+    const res = await fetch(`${httpServer}/api/v1/patients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie, 'x-organization-id': orgId },
+      body: JSON.stringify({
+        firstName: 'Email',
+        lastName: 'MalForme',
+        dateOfBirthUnknown: true,
+        email: 'pas-un-email',
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.meta.warnings).toBeDefined();
+  });
+
   it('GET /patients/:id renvoie la fiche creee', async () => {
     const createRes = await fetch(`${httpServer}/api/v1/patients`, {
       method: 'POST',

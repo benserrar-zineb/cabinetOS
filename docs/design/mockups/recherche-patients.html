@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CabinetOS — Recherche patients (maquette)</title>
+<style>
+  :root{
+    --ink:#1A2B34; --teal:#0E6E78; --teald:#0A4C54; --grey:#6B7A82;
+    --rule:#D8DFE2; --wash:#F2F6F7; --wash2:#E8F0F1; --white:#fff;
+    --greenbg:#E7F3EC; --green:#1E7A46; --amber:#B26B00; --amberbg:#FBF3E4;
+    --shadow:0 1px 2px rgba(26,43,52,.04),0 8px 24px rgba(26,43,52,.06);
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--wash);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .topbar{background:var(--white);border-bottom:1px solid var(--rule);padding:0 24px;height:56px;display:flex;align-items:center;gap:14px}
+  .brand{font-weight:700;letter-spacing:.5px;font-size:15px}
+  .brand span{color:var(--teal)}
+  .crumb{color:var(--grey);font-size:13px;margin-left:6px}
+  .crumb b{color:var(--ink);font-weight:600}
+
+  .wrap{max-width:860px;margin:26px auto 80px;padding:0 20px}
+
+  .pagehead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+  .pagehead h1{font-size:22px;margin:0;font-weight:700;letter-spacing:-.2px}
+  .pagehead .btn-new{font-family:inherit;font-size:14px;font-weight:600;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid transparent;background:var(--teal);color:#fff}
+  .pagehead .btn-new:hover{background:var(--teald)}
+
+  /* ---- Search bar ---- */
+  .searchbox{position:relative;margin-bottom:10px}
+  .searchbox .ic{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--grey);font-size:18px}
+  .searchbox input{
+    width:100%;font-size:16px;font-family:inherit;color:var(--ink);
+    padding:15px 16px 15px 46px;border:1px solid var(--rule);border-radius:12px;background:var(--white);
+    box-shadow:var(--shadow);transition:border-color .12s,box-shadow .12s;
+  }
+  .searchbox input::placeholder{color:#A9B4BA}
+  .searchbox input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,110,120,.12)}
+  .searchhint{font-size:12.5px;color:var(--grey);margin:0 2px 20px;display:flex;gap:16px;flex-wrap:wrap}
+  .searchhint span{display:inline-flex;align-items:center;gap:5px}
+  .searchhint .k{font-weight:600;color:var(--teald)}
+
+  .listlabel{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--grey);margin:0 2px 10px;display:flex;align-items:center;gap:10px}
+  .listlabel .count{color:var(--grey);font-weight:500;letter-spacing:0;text-transform:none;font-size:12.5px}
+  .listlabel::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+  /* ---- Results ---- */
+  .results{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .prow{display:flex;align-items:center;gap:15px;padding:13px 18px;border-bottom:1px solid var(--wash);cursor:pointer;transition:background .1s}
+  .prow:last-child{border-bottom:none}
+  .prow:hover{background:var(--wash)}
+  .pav{width:40px;height:40px;border-radius:50%;background:var(--wash2);color:var(--teald);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
+  .pinfo{flex:1;min-width:0}
+  .pn{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .pn .hl{background:#FCF3D4;border-radius:3px;padding:0 2px}
+  .badge{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:20px}
+  .badge.active{background:var(--greenbg);color:var(--green)}
+  .badge.archived{background:var(--wash2);color:var(--grey)}
+  .badge.deceased{background:#EFEAF2;color:#6B5B7B}
+  .psub{font-size:13px;color:var(--grey);display:flex;gap:14px;flex-wrap:wrap;margin-top:3px}
+  .psub b{color:var(--ink);font-weight:600}
+  .psub .sep{color:var(--rule)}
+  .pdob{font-size:13px;color:var(--grey);text-align:right;flex:none;white-space:nowrap}
+  .pdob b{color:var(--ink);font-weight:600;display:block;font-size:13.5px}
+
+  /* homonym warning */
+  .homonym{display:flex;align-items:center;gap:9px;background:var(--amberbg);border:1px solid #E8D4A8;color:var(--amber);border-radius:8px;padding:9px 13px;font-size:12.5px;margin-bottom:10px}
+  .homonym b{font-weight:700}
+
+  .switchbar{display:flex;gap:8px;margin:14px 2px 0}
+  .chip{font-size:12.5px;color:var(--grey);background:var(--white);border:1px solid var(--rule);border-radius:20px;padding:5px 13px;cursor:pointer}
+  .chip.on{background:var(--teald);color:#fff;border-color:var(--teald)}
+
+  .note{max-width:860px;margin:20px auto 0;padding:0 20px;color:var(--grey);font-size:12px;display:flex;gap:8px;align-items:flex-start}
+  .note b{color:var(--teald)}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">Cabinet<span>OS</span></div>
+    <div class="crumb">Patients</div>
+  </div>
+
+  <div class="wrap">
+    <div class="pagehead">
+      <h1>Patients</h1>
+      <button class="btn-new">+ Nouveau patient</button>
+    </div>
+
+    <div class="searchbox">
+      <span class="ic">⌕</span>
+      <input type="text" id="q" placeholder="Rechercher un patient — nom, téléphone ou CIN" oninput="runSearch()" autofocus>
+    </div>
+    <div class="searchhint">
+      <span><span class="k">Nom</span> recherche tolérante (accents, orthographe)</span>
+      <span><span class="k">Téléphone</span> exact ou début de numéro</span>
+      <span><span class="k">CIN</span> exact</span>
+    </div>
+
+    <!-- default state: recent patients -->
+    <div id="defaultView">
+      <div class="listlabel">Patients récents <span class="count">— 6 derniers</span></div>
+      <div class="results" id="recentList"></div>
+    </div>
+
+    <!-- search results -->
+    <div id="resultsView" style="display:none">
+      <div class="homonym" id="homonymWarn" style="display:none">
+        <span>⚠</span><span><b>Plusieurs patients portent ce nom.</b> Vérifiez la date de naissance pour choisir le bon.</span>
+      </div>
+      <div class="listlabel"><span id="resultCount"></span></div>
+      <div class="results" id="searchResults"></div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <span>◆</span>
+    <span><b>Maquette.</b> Tapez pour voir la recherche en action : « fat » (nom tolérant), « bennani » (homonymes → alerte + dates de naissance), « 0651 » (téléphone), « BK449 » (CIN). Une barre unique détecte le type de saisie. Aucune donnée réelle.</span>
+  </div>
+
+<script>
+  const patients=[
+    {n:"Fatima El Amrani",dob:"12/03/1991",age:34,tel:"+212 651 234 567",cin:"BK449182",cov:"CNSS",st:"active",rec:"P-2024-0142"},
+    {n:"Youssef Bennani",dob:"04/07/1978",age:47,tel:"+212 662 118 340",cin:"AB20155",cov:"CNOPS",st:"active",rec:"P-2024-0138"},
+    {n:"Youssef Benani",dob:"22/11/1985",age:39,tel:"+212 600 947 221",cin:"C338071",cov:"AMO",st:"active",rec:"P-2024-0131"},
+    {n:"Salma Tazi",dob:"18/01/2003",age:22,tel:"+212 678 550 912",cin:"BJ771204",cov:"Sans",st:"active",rec:"P-2024-0129"},
+    {n:"Omar Fikri",dob:"09/09/1966",age:59,tel:"+212 655 300 118",cin:"A118736",cov:"CNSS",st:"archived",rec:"P-2023-0088"},
+    {n:"Nadia Cherkaoui",dob:"27/05/1994",age:31,tel:"+212 690 442 187",cin:"BE550319",cov:"Mutuelle privée",st:"active",rec:"P-2024-0120"},
+  ];
+  const strip=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const badge=st=>st==="active"?'<span class="badge active">Actif</span>':st==="archived"?'<span class="badge archived">Archivé</span>':'<span class="badge deceased">Décédé</span>';
+  const initials=n=>n.split(" ").map(w=>w[0]).slice(0,2).join("");
+
+  function row(p,hl){
+    let name=p.n;
+    if(hl){const re=new RegExp("("+hl+")","ig");name=name.replace(re,'<span class="hl">$1</span>');}
+    return `<div class="prow">
+      <div class="pav">${initials(p.n)}</div>
+      <div class="pinfo">
+        <div class="pn">${name} ${badge(p.st)}</div>
+        <div class="psub"><span>${p.tel}</span><span class="sep">·</span><span>${p.cov}</span><span class="sep">·</span><span>${p.rec}</span></div>
+      </div>
+      <div class="pdob"><b>${p.age} ans</b>${p.dob}</div>
+    </div>`;
+  }
+
+  function render(list,el,hl){el.innerHTML=list.map(p=>row(p,hl)).join("")||'<div style="padding:22px 18px;color:#A9B4BA;font-size:14px">Aucun patient trouvé.</div>';}
+
+  render(patients,document.getElementById("recentList"));
+
+  function runSearch(){
+    const raw=document.getElementById("q").value.trim();
+    const dv=document.getElementById("defaultView"), rv=document.getElementById("resultsView");
+    if(raw===""){dv.style.display="block";rv.style.display="none";return;}
+    dv.style.display="none";rv.style.display="block";
+
+    const digits=raw.replace(/[^\d]/g,"");
+    const hasLetter=/[A-Za-z]/.test(raw);
+    // téléphone : au moins 3 chiffres, aucune lettre (donc pas une CIN)
+    const isPhone=digits.length>=3 && !hasLetter;
+    const isCin=/^[A-Za-z]{1,2}[0-9]+$/.test(raw);
+    let res=[],hl="";
+
+    if(isPhone){
+      // normaliser : retirer indicatif +212 / 00212 et le 0 national, des deux côtés
+      const norm=s=>{
+        let d=s.replace(/[^\d]/g,"");
+        d=d.replace(/^00212/,"").replace(/^212/,"").replace(/^0/,"");
+        return d;
+      };
+      const needle=norm(raw);
+      res=patients.filter(p=>norm(p.tel).includes(needle));
+      document.getElementById("resultCount").textContent=res.length+" résultat(s) · téléphone";
+    } else if(isCin && digits.length>0){
+      // normaliser : majuscules + sans espaces, des deux côtés (cohérent avec le stockage Q2)
+      const normCin=s=>s.toUpperCase().replace(/\s/g,"");
+      const v=normCin(raw);
+      res=patients.filter(p=>normCin(p.cin).startsWith(v));
+      document.getElementById("resultCount").textContent=res.length+" résultat(s) · CIN";
+      hl=raw;
+    } else {
+      const q=strip(raw);
+      res=patients.filter(p=>strip(p.n).includes(q));
+      document.getElementById("resultCount").textContent=res.length+" résultat(s) · nom";
+      hl=raw;
+    }
+    // homonym detection: same first token appears >1
+    const warn=document.getElementById("homonymWarn");
+    const firstTokens=res.map(p=>strip(p.n.split(" ").slice(-1)[0]));
+    const dup=firstTokens.some((t,i)=>firstTokens.indexOf(t)!==i);
+    warn.style.display=(dup && res.length>1)?"flex":"none";
+
+    render(res,document.getElementById("searchResults"),hl);
+  }
+</script>
+</body>
+</html>
