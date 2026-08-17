@@ -26,6 +26,26 @@ import { organizations } from '../../../modules/organization';
 // cin, nationalHealthId : jamais obligatoires. L unicite partielle du CIN (scopee par
 // organisation, Q2/ADR-0014) vit dans une migration custom (TASK-019), pas dans ce
 // schema -- meme limite d outillage que le RLS existant (ADR-0006).
+//
+// ADR-0015 (revision de modele issue du maquettage, additive -- ne remet en cause ni
+// EA-007 ni EA-008) :
+// - city separee d address (address = rue/quartier, city = ville) ;
+// - telephone structure : phoneCountryCode + phoneNationalNumber (zero national
+//   retiré a la saisie, normalisation appliquee cote presentation/recherche,
+//   TASK-026) -- remplace l ancienne colonne phone unique ;
+// - couverture sante : coverageType (enum) + coverageNumber (numero d immatriculation
+//   au regime). FRONTIERE NON NEGOCIABLE (Note de Vision) : jamais de montant, taux,
+//   remboursement ou decompte ici -- c est une donnee de soin/identite (le fait
+//   d etre couvert et par quel regime), pas une donnee commerciale/fiscale. Tout
+//   calcul ou montant releve du futur module Facturation, hors de CabinetOS.
+
+export const coverageTypeEnum = pgEnum('patient_coverage_type', [
+  'cnss',
+  'cnops',
+  'amo',
+  'mutuelle_privee',
+  'sans',
+]);
 
 export const patients = pgTable(
   'patients',
@@ -43,11 +63,15 @@ export const patients = pgTable(
     sex: text('sex'),
     cin: text('cin'),
     nationalHealthId: text('national_health_id'), // Q7 : reserve, sans validation, sans usage
-    phone: text('phone'),
+    phoneCountryCode: text('phone_country_code'), // ADR-0015 -- ex. '212'
+    phoneNationalNumber: text('phone_national_number'), // ADR-0015 -- normalise, sans le 0 initial
     email: text('email'),
-    address: text('address'),
+    address: text('address'), // ADR-0015 -- rue/quartier uniquement, city separee ci-dessous
+    city: text('city'), // ADR-0015
     country: text('country'),
     language: text('language'),
+    coverageType: coverageTypeEnum('coverage_type'), // ADR-0015 -- regime, jamais de montant
+    coverageNumber: text('coverage_number'), // ADR-0015 -- numero d immatriculation au regime
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
@@ -58,7 +82,11 @@ export const patients = pgTable(
   (table) => [
     index('patients_organization_id_idx').on(table.organizationId),
     index('patients_cin_idx').on(table.organizationId, table.cin),
-    index('patients_phone_idx').on(table.organizationId, table.phone),
+    index('patients_phone_idx').on(
+      table.organizationId,
+      table.phoneCountryCode,
+      table.phoneNationalNumber,
+    ),
   ],
 );
 

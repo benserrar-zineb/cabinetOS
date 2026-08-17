@@ -6,6 +6,7 @@ import {
   IsDateString,
   IsEmail,
   IsUUID,
+  IsEnum,
   ValidateIf,
 } from 'class-validator';
 
@@ -23,6 +24,13 @@ import {
 // bloquante (voir cin-validation.ts), donc elle ne peut pas etre un simple validateur
 // class-validator (qui ne fait que rejeter/accepter) -- elle est appliquee separement
 // par la couche appelante (TASK-025), qui decide quoi faire de l avertissement.
+//
+// ADR-0015 : city separee d address ; telephone structure (phoneCountryCode +
+// phoneNationalNumber, remplace l ancien champ phone unique) ; couverture sante
+// (coverageType + coverageNumber). FRONTIERE NON NEGOCIABLE (Note de Vision) :
+// aucun champ de montant, taux, remboursement ou decompte -- volontairement absent
+// de ce DTO, et ne doit jamais y etre ajoute. Tout calcul financier releve du futur
+// module Facturation, hors de CabinetOS.
 
 export class CreatePatientDto {
   @IsString()
@@ -58,7 +66,11 @@ export class CreatePatientDto {
 
   @IsOptional()
   @IsString()
-  phone?: string;
+  phoneCountryCode?: string;
+
+  @IsOptional()
+  @IsString()
+  phoneNationalNumber?: string;
 
   @IsOptional()
   @IsEmail()
@@ -70,11 +82,23 @@ export class CreatePatientDto {
 
   @IsOptional()
   @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
   country?: string;
 
   @IsOptional()
   @IsString()
   language?: string;
+
+  @IsOptional()
+  @IsEnum(['cnss', 'cnops', 'amo', 'mutuelle_privee', 'sans'])
+  coverageType?: 'cnss' | 'cnops' | 'amo' | 'mutuelle_privee' | 'sans';
+
+  @IsOptional()
+  @IsString()
+  coverageNumber?: string;
 
   @IsOptional()
   @IsUUID()
