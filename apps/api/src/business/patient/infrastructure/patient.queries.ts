@@ -1,6 +1,8 @@
 import { eq, sql } from 'drizzle-orm';
 import type { DatabaseService } from '../../../modules/shared/database/database.service';
 import { patients, patientRecords } from './schema';
+import { validateCin } from '../presentation/cin-validation';
+import { normalizePhone } from '../presentation/phone-normalization';
 
 // TASK-020 : fonctions d acces, toutes via withOrganizationScope (ADR-0005) -- aucun
 // acces direct a tx/db hors de ce garde-fou, point de vigilance de cloture BUILD-001.
@@ -9,6 +11,25 @@ import { patients, patientRecords } from './schema';
 // (INSERT ... ON CONFLICT ... RETURNING), jamais un SELECT suivi d un UPDATE separe --
 // deux creations concurrentes dans la meme organisation ne peuvent jamais recevoir le
 // meme numero (teste explicitement, voir patient.queries.spec.ts).
+//
+// TASK-026 : le CIN et le telephone sont normalises ICI, au moment de l ecriture --
+// jamais la valeur brute saisie. C est ce qui garantit que la recherche (normalisee
+// de la meme facon cote saisie) retrouve bien les donnees stockees.
+
+function normalizeIdentityInput<
+  T extends { cin?: string; phoneCountryCode?: string; phoneNationalNumber?: string },
+>(data: T): T {
+  const normalized = { ...data };
+  if (normalized.cin) {
+    normalized.cin = validateCin(normalized.cin).normalized;
+  }
+  if (normalized.phoneNationalNumber) {
+    const phone = normalizePhone(normalized.phoneNationalNumber);
+    normalized.phoneCountryCode = phone.countryCode;
+    normalized.phoneNationalNumber = phone.nationalNumber;
+  }
+  return normalized;
+}
 //
 // Hors perimetre ici (arrivent plus tard) : validation CIN/date de naissance
 // (TASK-022).
@@ -48,7 +69,8 @@ export async function createPatient(
   data: CreatePatientInput,
 ) {
   return databaseService.withOrganizationScope(organizationId, async (tx) => {
-    const { responsiblePatientRecordId, ...identity } = data;
+    const { responsiblePatientRecordId, ...rawIdentity } = data;
+    const identity = normalizeIdentityInput(rawIdentity);
 
     // TASK-021, couche applicative : verifie AVANT d ecrire, pour un message d erreur
     // exploitable (400 propre en TASK-025) -- le trigger base (0006) est la garantie
@@ -117,9 +139,10 @@ export async function updatePatient(
   data: UpdatePatientInput,
 ) {
   return databaseService.withOrganizationScope(organizationId, async (tx) => {
+    const normalized = normalizeIdentityInput(data);
     const [updated] = await tx
       .update(patients)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...normalized, updatedAt: new Date() })
       .where(eq(patients.id, id))
       .returning();
     return updated;
