@@ -342,140 +342,21 @@ futur, sans en construire aucune pièce maintenant. Les sept clarifications du G
 
 ## ADR rédigés
 
-### ADR-0012 — Distinction identité / relation cabinet-patient
+Les trois décisions ci-dessous ont été extraites dans leurs fichiers ADR officiels
+(`docs/adr/`), conformément à `docs/ORGANISATION.md` — elles ne sont plus dupliquées
+ici.
 
-**Statut** : Accepté (Decision Gate BUILD-002).
+- **[ADR-0012](../adr/0012-distinction-identite-relation-patient.md)** — Distinction
+  identité / relation cabinet-patient.
+- **[ADR-0013](../adr/0013-perimetre-reporte-module-patient.md)** — Périmètre reporté
+  du module Patient (enrichi par ADR-0015).
+- **[ADR-0014](../adr/0014-unicite-validation-cin.md)** — Unicité et validation du
+  CIN.
 
-**Contexte**
-
-Le module Patient doit représenter à la fois « qui est cette personne » et « le fait
-qu'elle soit patiente de ce cabinet ». La Note de Vision (§6) reporte le rattachement
-transversal entre organisations, mais demande que le modèle le prépare sans le
-construire. ADR-0005 impose que toute donnée scopée porte un `organizationId` protégé
-par RLS.
-
-**Décision**
-
-Deux tables : `patients` (identité — nom, prénom, date de naissance, CIN, contact,
-adresse) et `patientRecords` (relation — numéro de dossier, statut, date de
-rattachement, responsable éventuel). **Les deux restent scopées par `organizationId`
-pour ce Build** — l'identité n'est pas rendue globale.
-
-**Justification**
-
-- Cohérence avec ADR-0005 : aucune table scopée n'échappe au RLS sans raison
-  documentée et validée ; le rattachement transversal, seul cas où l'identité globale
-  aurait un sens, est explicitement hors périmètre.
-- Séparer les deux objets même tous deux scopés isole deux cycles de vie différents et
-  rend la future migration vers une identité partagée additive (on ajoute un mécanisme
-  d'appariement) plutôt que destructive (on détricote une table fusionnée).
-- Permet de représenter le patient sans identité autonome (dépendant) au niveau de la
-  relation, sans dupliquer la logique d'identité.
-
-**Conséquences**
-
-- Toute lecture combinée (API `GET /api/v1/patients/:id`) fait une jointure entre
-  `patients` et `patientRecords` — l'appelant ne voit qu'une ressource `patients`
-  unique ; la séparation en deux tables est un détail d'implémentation.
-- Le jour où le rattachement transversal sera construit, cet ADR sera révisé
-  explicitement (nouvel ADR de révision), pas contourné par un ajout silencieux de
-  colonne.
-
-**Alternative écartée** : table unique fusionnant identité et relation. Plus simple
-immédiatement, mais capitalise une dette de migration certaine.
-
----
-
-### ADR-0013 — Périmètre reporté du module Patient
-
-**Statut** : Accepté (Decision Gate BUILD-002).
-
-**Contexte**
-
-Le RFA nomme explicitement plusieurs capacités hors périmètre de ce Build, et le Gate
-en a ajouté deux (Q5 second cas, Q7). Nommer une porte plutôt que la fermer par oubli
-est la règle du dépôt (`docs/ORGANISATION.md`, principe « une chose = un seul endroit »).
-
-**Décision**
-
-Sont explicitement reportés, sans être construits ni anticipés dans ce Build :
-
-1. Le compte patient (connexion, mot de passe, MFA).
-2. Le paiement et la facturation côté patient.
-3. Les préférences et paramètres de compte patient.
-4. Les documents chiffrés côté patient.
-5. La prise de RDV en ligne par le patient.
-6. La gestion des proches en libre-service.
-7. L'appariement transversal de l'identité entre organisations et le compte patient
-   qui l'agrège.
-8. La vérification d'identité (preuve de possession : SMS, etc.).
-9. Le responsable externe non-patient d'un dépendant (tuteur/accompagnant sans
-   dossier propre) — contournement en attendant : fiche minimale créée pour ce
-   responsable, comme n'importe quel patient (Q5).
-10. La gestion de RDV déléguée entre comptes patients, façon Doctolib (un patient
-    gère les rendez-vous d'un autre) — dépend entièrement du futur module Compte
-    Patient + Agenda (Q5).
-11. La numérotation séquentielle « lisible » du dossier et la reprise d'une
-    numérotation papier existante (Q6) — l'identifiant système reste la seule
-    garantie ; l'habillage visuel choisi par le cabinet n'inclut ni l'un ni l'autre
-    pour ce Build.
-12. Tout usage ou validation du champ `nationalHealthId` (Q7) — le champ existe,
-    réservé, sans logique.
-
-**Justification**
-
-Chacun de ces points touche une brique non construite (compte patient, Agenda) ou une
-fonctionnalité dont le besoin réel n'est pas prouvé (numérotation papier spécifique).
-Les nommer maintenant évite qu'ils soient rediscutés dans un an comme si personne n'y
-avait pensé (`docs/ORGANISATION.md`, règle d'or).
-
-**Conséquences**
-
-- Le modèle d'identité (`patients`) ne doit rien anticiper de la relation
-  « compte ↔ compte » du point 10 — mais ne doit rien non plus lui rendre impossible.
-  Vérifié : aucune contrainte du modèle actuel ne bloque l'ajout futur d'un compte
-  patient référençant un `patients.id`.
-- Toute reprise d'un des douze points ci-dessus ouvre un nouveau RFA de module ou un
-  ADR de révision — jamais un ajout silencieux.
-
----
-
-### ADR-0014 — Unicité et validation du CIN
-
-**Statut** : Accepté (Decision Gate BUILD-002).
-
-**Contexte**
-
-Le CIN est un futur pivot d'appariement transversal (Note de Vision, §3) mais n'est
-exploité comme tel dans aucun Build actuel. Le RFA nomme explicitement le piège de
-l'unicité prématurée.
-
-**Décision**
-
-- **Validation** : format `^[A-Za-z]{1,2}[0-9]+$`, vérifié à la saisie, **non
-  bloquant** (avertissement affiché, jamais de rejet). Normalisation systématique en
-  majuscules avant stockage et avant tout contrôle d'unicité. Aucune validation de la
-  longueur des chiffres, aucune liste de lettres régionales valides.
-- **Unicité** : contrainte partielle scopée par organisation —
-  `UNIQUE (organization_id, cin) WHERE cin IS NOT NULL`. Jamais d'unicité globale.
-
-**Justification**
-
-Une unicité globale imposerait de facto un appariement transversal non voulu
-maintenant : deux organisations ne pourraient jamais avoir chacune un patient portant
-le même CIN réel, alors que ce sont deux identités distinctes tant que le
-rattachement transversal n'existe pas (ADR-0012). La validation non bloquante évite de
-rejeter des CIN réels mais atypiques (formats hérités, préfixes rares) — un CIN mal
-formé reste une donnée acceptée, avec un avertissement, jamais un blocage de la
-création de fiche.
-
-**Conséquences**
-
-- Le message d'erreur en cas de doublon dans une même organisation reste générique
-  (« CIN déjà utilisé dans cette organisation ») — jamais de détail qui laisserait
-  deviner l'existence d'un CIN dans une *autre* organisation (Section D, Passe 1).
-- Quand le CIN deviendra le pivot transversal, l'unicité sera réévaluée à l'échelle
-  globale par un nouvel ADR de révision — jamais par une migration silencieuse.
+Voir aussi **[ADR-0015](../adr/0015-revision-modele-patient.md)** — révision de
+modèle issue du design des écrans (city, téléphone structuré, couverture santé,
+normalisation de recherche), et la
+**[spec de design](../design/module-patient-creation-consultation-recherche.md)**.
 
 ---
 

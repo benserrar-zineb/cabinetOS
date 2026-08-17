@@ -4,9 +4,8 @@ import {
   IsOptional,
   IsBoolean,
   IsDateString,
-  IsEmail,
-  IsUUID,
   IsEnum,
+  IsUUID,
   ValidateIf,
 } from 'class-validator';
 
@@ -73,7 +72,7 @@ export class CreatePatientDto {
   phoneNationalNumber?: string;
 
   @IsOptional()
-  @IsEmail()
+  @IsString()
   email?: string;
 
   @IsOptional()
