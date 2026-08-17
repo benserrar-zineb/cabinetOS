@@ -23,6 +23,12 @@ describe('validateCin (TASK-022, Q2 du Decision Gate)', () => {
     expect(result.formatValid).toBe(true);
   });
 
+  it('retire les espaces (saisie ou copier-coller avec espaces), pour que la recherche trouve le meme patient', () => {
+    const result = validateCin('AB 123 456');
+    expect(result.normalized).toBe('AB123456');
+    expect(result.formatValid).toBe(true);
+  });
+
   it('signale un format invalide sans lettre, mais renvoie quand meme une valeur normalisee (jamais de rejet)', () => {
     const result = validateCin('123456');
     expect(result.formatValid).toBe(false);
