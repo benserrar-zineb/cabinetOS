@@ -9,6 +9,7 @@ import {
   findPatientById,
   updatePatient,
   updatePatientRecordStatus,
+  findPatientSummaryById,
   ResponsibleRecordOrganizationMismatchError,
 } from '../../src/business/patient/infrastructure/patient.queries';
 import { uuidv7 } from 'uuidv7';
@@ -195,5 +196,27 @@ describe('patient.queries (TASK-020)', () => {
         message: expect.stringContaining('same organization'),
       },
     });
+  });
+
+  it('findPatientSummaryById (TASK-027) renvoie un nom affichable et le numero de dossier', async () => {
+    const created = await createPatient(databaseService, orgA.id, {
+      firstName: 'Sara',
+      lastName: 'Summary',
+    });
+    const summary = await findPatientSummaryById(databaseService, orgA.id, created.record.id);
+    expect(summary).toEqual({
+      id: created.id,
+      displayName: 'Sara Summary',
+      sequentialNumber: created.record.sequentialNumber,
+    });
+  });
+
+  it('findPatientSummaryById renvoie undefined pour un dossier absent', async () => {
+    const summary = await findPatientSummaryById(
+      databaseService,
+      orgA.id,
+      '00000000-0000-0000-0000-000000000000',
+    );
+    expect(summary).toBeUndefined();
   });
 });

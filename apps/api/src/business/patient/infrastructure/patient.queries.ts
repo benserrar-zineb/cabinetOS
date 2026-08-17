@@ -164,3 +164,41 @@ export async function updatePatientRecordStatus(
     return updated;
   });
 }
+
+// TASK-027 : surface minimale destinee aux futurs modules Business (Agenda,
+// Consultation, Prescription) -- juste de quoi afficher/referencer une fiche, jamais
+// de quoi la modifier. Aucune fonction d ecriture n est exportee par index.ts.
+
+export interface PatientSummary {
+  id: string;
+  displayName: string;
+  sequentialNumber: number;
+}
+
+export async function findPatientSummaryById(
+  databaseService: DatabaseService,
+  organizationId: string,
+  patientRecordId: string,
+): Promise<PatientSummary | undefined> {
+  return databaseService.withOrganizationScope(organizationId, async (tx) => {
+    const [row] = await tx
+      .select({
+        id: patients.id,
+        firstName: patients.firstName,
+        lastName: patients.lastName,
+        sequentialNumber: patientRecords.sequentialNumber,
+      })
+      .from(patientRecords)
+      .innerJoin(patients, eq(patientRecords.patientId, patients.id))
+      .where(eq(patientRecords.id, patientRecordId));
+
+    if (!row) {
+      return undefined;
+    }
+    return {
+      id: row.id,
+      displayName: `${row.firstName} ${row.lastName}`,
+      sequentialNumber: row.sequentialNumber,
+    };
+  });
+}
