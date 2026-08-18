@@ -1,0 +1,90 @@
+/*
+ * Jetons de design partages par les trois ecrans du module Patient
+ * (creation, consultation, recherche) -- extraits fidelement des maquettes
+ * du Product Owner (docs/design/maquettes/), pas une nouvelle direction
+ * visuelle : les maquettes fixent deja l'apparence voulue.
+ */
+:root {
+  --ink: #1a2b34;
+  --teal: #0e6e78;
+  --teald: #0a4c54;
+  --grey: #6b7a82;
+  --rule: #d8dfe2;
+  --wash: #f2f6f7;
+  --wash2: #e8f0f1;
+  --white: #fff;
+  --amber: #b26b00;
+  --amberbg: #fbf3e4;
+  --greenbg: #e7f3ec;
+  --green: #1e7a46;
+  --shadow: 0 1px 2px rgba(26, 43, 52, 0.04), 0 8px 24px rgba(26, 43, 52, 0.06);
+  --radius: 10px;
+}
+
+.cos-body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--wash);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.cos-topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--rule);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cos-brand {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+  font-size: 15px;
+}
+.cos-brand span {
+  color: var(--teal);
+}
+.cos-crumb {
+  color: var(--grey);
+  font-size: 13px;
+  margin-left: 6px;
+}
+.cos-crumb b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cos-btn {
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 11px 20px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.cos-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.cos-btn-primary {
+  background: var(--teal);
+  color: #fff;
+}
+.cos-btn-primary:hover:not(:disabled) {
+  background: var(--teald);
+}
+.cos-btn-ghost {
+  background: none;
+  color: var(--grey);
+  border-color: var(--rule);
+}
+.cos-btn-ghost:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--grey);
+}
