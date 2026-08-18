@@ -1,0 +1,12 @@
+{
+  "extends": "../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "jsx": "react-jsx",
+    "module": "CommonJS",
+    "moduleResolution": "NodeNext",
+    "types": ["jest", "node", "@testing-library/jest-dom"],
+    "isolatedModules": true
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

@@ -3,23 +3,28 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@next/swc-linux-x64-gnu": "16.2.12",
     "next": "^16.2.12",
     "next-intl": "^4.13.4",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "@next/swc-linux-x64-gnu": "16.2.12"
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.4",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "ts-jest": "^29.4.12"
   },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "test": "jest --config jest.config.cjs --runInBand"
+    "test": "jest --config jest.config.cjs --runInBand && jest --config jest.component.config.cjs --runInBand",
+    "test:component": "jest --config jest.component.config.cjs --runInBand"
   }
 }

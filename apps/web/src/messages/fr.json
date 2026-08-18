@@ -1,5 +1,62 @@
 {
   "HomePage": {
     "title": "Bienvenue sur CabinetOS"
+  },
+  "PatientCreate": {
+    "title": "Nouveau patient",
+    "subhead": "Saisissez l'essentiel pour créer la fiche. Vous pourrez compléter le reste à tout moment.",
+    "coreLabel": "Identité minimale",
+    "requiredHint": { "prefix": "Champs marqués", "suffix": "requis" },
+    "breadcrumb": { "patients": "Patients", "current": "Nouveau patient" },
+    "field": {
+      "optional": "facultatif",
+      "firstName": { "label": "Prénom", "error": "Le prénom est requis." },
+      "lastName": { "label": "Nom", "error": "Le nom est requis." },
+      "dateOfBirth": {
+        "label": "Date de naissance",
+        "unknown": "Date inconnue",
+        "error": "Renseignez la date, ou cochez « date inconnue ».",
+        "unknownNote": "Fiche créée sans date de naissance. Pensez à la compléter dès que possible : elle sert à distinguer les homonymes."
+      },
+      "phone": {
+        "label": "Téléphone",
+        "recommended": "recommandé",
+        "dialCodeLabel": "Indicatif",
+        "hint": "Sert aux rappels de rendez-vous et à la recherche.",
+        "warning": "Ce numéro semble incomplet. Vous pouvez l'enregistrer quand même."
+      },
+      "email": {
+        "label": "E-mail",
+        "warning": "Cet e-mail semble incomplet (il manque « @ » ou le domaine). Vous pouvez l'enregistrer quand même."
+      },
+      "cin": {
+        "label": "CIN",
+        "hint": "Carte nationale — 1 ou 2 lettres suivies de chiffres.",
+        "warning": "Ce format ne ressemble pas à une CIN habituelle. Vous pouvez l'enregistrer quand même."
+      },
+      "sex": { "label": "Sexe", "female": "Féminin", "male": "Masculin" },
+      "coverage": { "label": "Couverture / prise en charge" },
+      "coverageNumber": { "label": "N° d'immatriculation" },
+      "address": { "label": "Adresse" },
+      "city": { "label": "Ville" },
+      "country": { "label": "Pays" },
+      "language": { "label": "Langue" }
+    },
+    "more": {
+      "toggle": "Ajouter plus d'informations",
+      "toggleHint": "— e-mail, CIN, adresse, ville (facultatif)",
+      "groupContact": "Contact",
+      "groupIdentification": "Identification",
+      "groupAddress": "Adresse & préférences",
+      "configurableListsNote": "Les listes Ville, Langue et Couverture seront personnalisables par le cabinet depuis l'espace admin (module à venir). Valeurs par défaut pour l'instant."
+    },
+    "actions": { "create": "Créer la fiche", "createAndOpen": "Créer et ouvrir" },
+    "validation": {
+      "formErrorPrefix": "Impossible de créer la fiche. Il manque des informations obligatoires :",
+      "dobOrUnknown": "date de naissance (ou « inconnue »)",
+      "noOrganization": "Aucune organisation sélectionnée — impossible de créer la fiche pour le moment.",
+      "unexpected": "Une erreur inattendue est survenue. Réessayez."
+    },
+    "success": { "created": "Fiche créée." }
   }
 }
