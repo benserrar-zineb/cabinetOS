@@ -58,5 +58,58 @@
       "unexpected": "Une erreur inattendue est survenue. Réessayez."
     },
     "success": { "created": "Fiche créée." }
+  },
+  "PatientConsultation": {
+    "breadcrumb": { "patients": "Patients" },
+    "loading": "Chargement...",
+    "notFound": "Patient introuvable.",
+    "unexpectedError": "Une erreur inattendue est survenue.",
+    "noOrganization": "Aucune organisation sélectionnée — impossible de charger la fiche.",
+    "status": { "active": "Actif", "archived": "Archivé", "deceased": "Décédé" },
+    "ageYears": "{age} ans",
+    "recordNumber": "Dossier",
+    "fullRecord": "Fiche complète",
+    "unknown": "non renseignée",
+    "sexFemale": "Féminin",
+    "sexMale": "Masculin",
+    "consultationComingSoon": "Le module Consultation n'est pas encore disponible.",
+    "actions": {
+      "edit": "Modifier",
+      "startConsultation": "Démarrer la consultation",
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "field": {
+      "dob": "Naissance",
+      "sex": "Sexe",
+      "cin": "CIN",
+      "coverage": "Couverture",
+      "email": "E-mail",
+      "address": "Adresse",
+      "city": "Ville",
+      "country": "Pays",
+      "language": "Langue"
+    },
+    "workLabel": "Pour démarrer la consultation — modules à venir",
+    "comingSoon": "À venir",
+    "zone": {
+      "visitReason": {
+        "title": "Motif de la visite & contexte",
+        "description": "Motif du jour, première visite ou suivi, note transmise par la secrétaire, points d'attention. Alimenté par les modules Agenda et Consultation.",
+        "placeholder": "Zone principale de travail du médecin — réservée"
+      },
+      "history": {
+        "title": "Dernière consultation & historique",
+        "description": "Date de la dernière visite, diagnostic, suivi, historique médical."
+      },
+      "prescriptions": {
+        "title": "Ordonnances & rendez-vous",
+        "description": "Prescriptions en cours et prochains rendez-vous."
+      },
+      "referrals": {
+        "title": "Orientations & recommandations",
+        "description": "Patient adressé par ou vers un autre médecin, un laboratoire, une radiologie ou une officine — le flux du réseau CabinetOS."
+      }
+    }
   }
 }

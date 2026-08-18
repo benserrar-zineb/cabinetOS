@@ -58,5 +58,58 @@
       "unexpected": "حدث خطأ غير متوقع. حاول مرة أخرى."
     },
     "success": { "created": "تم إنشاء الملف." }
+  },
+  "PatientConsultation": {
+    "breadcrumb": { "patients": "المرضى" },
+    "loading": "جار التحميل...",
+    "notFound": "المريض غير موجود.",
+    "unexpectedError": "حدث خطأ غير متوقع.",
+    "noOrganization": "لم يتم تحديد أي مؤسسة — لا يمكن تحميل الملف.",
+    "status": { "active": "نشط", "archived": "مؤرشف", "deceased": "متوفى" },
+    "ageYears": "{age} سنة",
+    "recordNumber": "الملف",
+    "fullRecord": "الملف الكامل",
+    "unknown": "غير محدد",
+    "sexFemale": "أنثى",
+    "sexMale": "ذكر",
+    "consultationComingSoon": "ستتوفر الاستشارة مع وحدة الاستشارة (قادمة).",
+    "actions": {
+      "edit": "تعديل",
+      "startConsultation": "بدء الاستشارة",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "field": {
+      "dob": "الميلاد",
+      "sex": "الجنس",
+      "cin": "البطاقة الوطنية",
+      "coverage": "التغطية",
+      "email": "البريد الإلكتروني",
+      "address": "العنوان",
+      "city": "المدينة",
+      "country": "البلد",
+      "language": "اللغة"
+    },
+    "workLabel": "لبدء الاستشارة — وحدات قادمة",
+    "comingSoon": "قادم",
+    "zone": {
+      "visitReason": {
+        "title": "سبب الزيارة والسياق",
+        "description": "سبب الزيارة، أول زيارة أو متابعة، ملاحظة من السكرتيرة، نقاط الانتباه. تُغذَّى من وحدتي الأجندة والاستشارة.",
+        "placeholder": "المساحة الرئيسية لعمل الطبيب — محجوزة"
+      },
+      "history": {
+        "title": "آخر استشارة والتاريخ الطبي",
+        "description": "تاريخ آخر زيارة، التشخيص، المتابعة، التاريخ الطبي."
+      },
+      "prescriptions": {
+        "title": "الوصفات والمواعيد",
+        "description": "الوصفات الحالية والمواعيد القادمة."
+      },
+      "referrals": {
+        "title": "التوجيهات والتوصيات",
+        "description": "مريض موجَّه من أو إلى طبيب آخر، مختبر، مصلحة أشعة أو صيدلية — تدفق شبكة CabinetOS."
+      }
+    }
   }
 }
