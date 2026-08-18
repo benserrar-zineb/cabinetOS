@@ -1,0 +1,286 @@
+.pcv-wrap {
+  max-width: 940px;
+  margin: 22px auto 80px;
+  padding: 0 20px;
+}
+
+.pcv-idstrip {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.pcv-idstrip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--teal);
+}
+.pcv-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--wash2);
+  color: var(--teald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex: none;
+}
+.pcv-idmain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pcv-idname {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.pcv-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.pcv-badge.active {
+  background: var(--greenbg);
+  color: var(--green);
+}
+.pcv-badge.archived {
+  background: var(--wash2);
+  color: var(--grey);
+}
+.pcv-badge.deceased {
+  background: #efeaf2;
+  color: #6b5b7b;
+}
+.pcv-idfacts {
+  color: var(--grey);
+  font-size: 13.5px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.pcv-idfacts b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.pcv-idfacts .pcv-sep {
+  color: var(--rule);
+}
+.pcv-idstrip .pcv-more-link {
+  font-size: 13px;
+  color: var(--teal);
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  white-space: nowrap;
+  flex: none;
+}
+.pcv-idstrip .pcv-more-link:hover {
+  color: var(--teald);
+}
+.pcv-idactions {
+  display: flex;
+  gap: 9px;
+  flex: none;
+}
+
+.pcv-iddetail-inner {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 28px;
+}
+@media (max-width: 640px) {
+  .pcv-iddetail-inner {
+    grid-template-columns: 1fr;
+  }
+}
+.pcv-kv {
+  display: flex;
+  padding: 6px 0;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--wash);
+}
+.pcv-kv .pcv-k {
+  width: 110px;
+  flex: none;
+  color: var(--grey);
+}
+.pcv-kv .pcv-v {
+  color: var(--ink);
+  font-weight: 500;
+}
+.pcv-kv .pcv-v.empty {
+  color: #a9b4ba;
+  font-style: italic;
+  font-weight: 400;
+}
+.pcv-kv input,
+.pcv-kv select {
+  font-family: inherit;
+  font-size: 13.5px;
+  padding: 5px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  width: 100%;
+}
+
+.pcv-worklabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--grey);
+  margin: 22px 2px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pcv-worklabel::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.pcv-today {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.pcv-zhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.pcv-today h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+.pcv-soon {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--teald);
+  background: var(--wash2);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 3px 10px;
+  flex: none;
+}
+.pcv-today p {
+  margin: 0;
+  color: var(--grey);
+  font-size: 13.5px;
+  max-width: 70ch;
+}
+.pcv-placeholder {
+  margin-top: 14px;
+  height: 64px;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg, var(--wash) 0 10px, #eef3f4 10px 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--grey);
+  font-size: 12.5px;
+}
+
+.pcv-zgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 720px) {
+  .pcv-zgrid {
+    grid-template-columns: 1fr;
+  }
+}
+.pcv-zone {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  position: relative;
+}
+.pcv-zone h2 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+.pcv-zone p {
+  margin: 0;
+  color: var(--grey);
+  font-size: 13px;
+}
+.pcv-zone .pcv-placeholder {
+  margin-top: 12px;
+  height: 52px;
+}
+.pcv-zfull {
+  grid-column: 1 / -1;
+}
+
+.pcv-note {
+  max-width: 940px;
+  margin: 18px auto 0;
+  padding: 0 20px;
+  color: var(--grey);
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.pcv-note b {
+  color: var(--teald);
+}
+
+.pcv-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pcv-loading,
+.pcv-error {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--grey);
+}
