@@ -356,7 +356,7 @@ ici.
 Voir aussi **[ADR-0015](../adr/0015-revision-modele-patient.md)** — révision de
 modèle issue du design des écrans (city, téléphone structuré, couverture santé,
 normalisation de recherche), et la
-**[spec de design](../design/module-patient-creation-consultation-recherche.md)**.
+**[spec de design](../design/module-patient-spec.md)**.
 
 ---
 
