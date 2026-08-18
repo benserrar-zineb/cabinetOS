@@ -111,5 +111,32 @@
         "description": "Patient adressé par ou vers un autre médecin, un laboratoire, une radiologie ou une officine — le flux du réseau CabinetOS."
       }
     }
+  },
+  "PatientSearch": {
+    "title": "Patients",
+    "newPatient": "+ Nouveau patient",
+    "placeholder": "Rechercher un patient — nom, téléphone ou CIN",
+    "hint": {
+      "nameLabel": "Nom",
+      "nameDesc": "recherche tolérante (accents, orthographe)",
+      "phoneLabel": "Téléphone",
+      "phoneDesc": "exact ou début de numéro",
+      "cinLabel": "CIN",
+      "cinDesc": "exact"
+    },
+    "noOrganization": "Aucune organisation sélectionnée — impossible de rechercher.",
+    "unexpectedError": "Une erreur inattendue est survenue.",
+    "invite": "Tapez un nom, un numéro de téléphone ou une CIN pour commencer la recherche.",
+    "homonymWarning": "Plusieurs patients portent ce nom. Vérifiez la date de naissance pour choisir le bon.",
+    "searching": "Recherche en cours...",
+    "resultCount": "{count} résultat(s) · {type}",
+    "noResults": "Aucun patient trouvé.",
+    "status": { "active": "Actif", "archived": "Archivé", "deceased": "Décédé" },
+    "noPhone": "téléphone non renseigné",
+    "noCoverage": "couverture non renseignée",
+    "recordNumber": "Dossier",
+    "ageYears": "{age} ans",
+    "unknownAge": "âge inconnu",
+    "type": { "name": "nom", "phone": "téléphone", "cin": "CIN" }
   }
 }
