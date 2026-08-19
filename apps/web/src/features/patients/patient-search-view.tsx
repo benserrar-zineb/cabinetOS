@@ -157,7 +157,6 @@ export function PatientSearchView({ locale }: { locale: string }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   const hasHomonyms = useMemo(() => {
