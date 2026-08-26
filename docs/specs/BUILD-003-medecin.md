@@ -28,7 +28,7 @@ relation n'est créée**. Le rattachement à une organisation est intégralement
 par la table `memberships` du socle (BUILD-001), déjà capable de représenter
 « cet utilisateur appartient à cette organisation avec ce rôle ». `medecins` ne fait
 que référencer optionnellement un `userId` — quand il est renseigné, les memberships
-existants de cet utilisateur *sont* ses rattachements organisationnels. Le module
+existants de cet utilisateur _sont_ ses rattachements organisationnels. Le module
 n'invente rien côté appartenance.
 
 Cette table reste **scopée par organisation**, comme `patients` — un médecin présent
@@ -38,6 +38,7 @@ mais cohérent avec le choix déjà fait de ne pas construire d'identité transv
 avant que le besoin réel (le hub) ne soit lui-même construit.
 
 **Risques** :
+
 - Duplication de l'identité pour un médecin multi-organisations (accepté, comme pour
   Patient — le transversal reste reporté).
 - L'identifiant professionnel (INPE et/ou n° Ordre) est un futur pivot d'appariement
@@ -52,21 +53,21 @@ avant que le besoin réel (le hub) ne soit lui-même construit.
 
 ### Une seule table nouvelle : `medecins`
 
-| Champ | Type | Obligatoire | Note |
-|---|---|---|---|
-| `id` | uuid (pk) | oui | |
-| `organizationId` | uuid (fk `organizations.id`) | oui | scope, comme `patients.organizationId` |
-| `userId` | text (fk `users.id`, nullable) | non | rempli = médecin-utilisateur ; vide = médecin externe |
-| `firstName` | text | oui | |
-| `lastName` | text | oui | |
-| `specialty` | text | non | texte libre pour ce Build (voir F) |
-| `inpe` | text | non | 9 chiffres, validation non bloquante (voir C) |
-| `numeroOrdre` | text | non | format non contraint pour ce Build (voir F) |
-| `description` | text | non | présentation interne ; publication différée (voir périmètre reporté) |
-| `phoneCountryCode` / `phoneNationalNumber` | text | non | même structure que Patient (ADR-0015) |
-| `email` | text | non | |
-| `location` | text | non | **réservé**, sans logique — même traitement que `nationalHealthId` pour Patient |
-| `createdAt` / `updatedAt` / `deletedAt` | timestamp | — | |
+| Champ                                      | Type                           | Obligatoire | Note                                                                            |
+| ------------------------------------------ | ------------------------------ | ----------- | ------------------------------------------------------------------------------- |
+| `id`                                       | uuid (pk)                      | oui         |                                                                                 |
+| `organizationId`                           | uuid (fk `organizations.id`)   | oui         | scope, comme `patients.organizationId`                                          |
+| `userId`                                   | text (fk `users.id`, nullable) | non         | rempli = médecin-utilisateur ; vide = médecin externe                           |
+| `firstName`                                | text                           | oui         |                                                                                 |
+| `lastName`                                 | text                           | oui         |                                                                                 |
+| `specialty`                                | text                           | non         | texte libre pour ce Build (voir F)                                              |
+| `inpe`                                     | text                           | non         | 9 chiffres, validation non bloquante (voir C)                                   |
+| `numeroOrdre`                              | text                           | non         | format non contraint pour ce Build (voir F)                                     |
+| `description`                              | text                           | non         | présentation interne ; publication différée (voir périmètre reporté)            |
+| `phoneCountryCode` / `phoneNationalNumber` | text                           | non         | même structure que Patient (ADR-0015)                                           |
+| `email`                                    | text                           | non         |                                                                                 |
+| `location`                                 | text                           | non         | **réservé**, sans logique — même traitement que `nationalHealthId` pour Patient |
+| `createdAt` / `updatedAt` / `deletedAt`    | timestamp                      | —           |                                                                                 |
 
 ### La distinction identité / rattachement
 
@@ -294,5 +295,219 @@ proposé en section B), ou comme un champ réservé au même titre que `location
 
 ---
 
-**Fin de la Passe 1.** Le Decision Gate tranche ces six questions et valide les
-décisions C.1 à C.6 avant l'ouverture de la Passe 2.
+**Fin de la Passe 1.**
+
+---
+
+# DECISION GATE — validé
+
+Sept décisions tranchées (F.1 à F.7) :
+
+- **F.1** — INPE = pivot du réseau (9 chiffres). Numéro d'Ordre capturé en
+  complément (couvre les médecins publics sans INPE). Les deux optionnels,
+  unicité partielle scopée, jamais globale. Détail : ADR-0018.
+- **F.2** — Aucun identifiant obligatoire : seuls nom et prénom requis. La
+  vérification d'identité est reportée au futur module d'accès.
+- **F.3** — Numéro d'Ordre : texte libre, sans validation de format (aucune
+  référence fiable sur sa structure). Une validation souple pourra venir plus
+  tard par ADR de révision.
+- **F.4** — Spécialité 0 ou 1 (contrainte légale, article 16 de la loi
+  131-13). Liste contrôlée simple pour ce Build. Référentiel versionné et
+  compétences structurées → reportés (ADR-0017).
+- **F.5** — Médecin externe : duplication entre organisations acceptée pour
+  ce Build (cohérent avec Patient, transversal reporté). Partage/dédoublonnage
+  reporté au hub, via l'INPE.
+- **F.6** — Pas de distinction « parti » vs « jamais rattaché ». L'identité
+  survit toujours au départ (trigger de détachement, ADR-0016). L'attribution
+  historique viendra du futur module Consultation.
+- **F.7** — Recherche par nom construite (tolérante). Ville promue en vrai
+  champ, spécialité en liste contrôlée. Recherche par critères combinés
+  reportée au référencement.
+
+**Invariants confirmés, non rediscutés** : une seule table `medecins` scopée ;
+rattachement par clé composée `(organizationId, userId)` → `memberships`,
+détachement par trigger (pas par `ON DELETE SET NULL` natif, inviable — voir
+spike ci-dessous) ; les trois gestes d'isolation obligatoires ; frontière
+anti-DGI (aucune donnée commerciale/fiscale) ; messages de doublon génériques.
+
+---
+
+# PASSE 2 — Spécification & découpage
+
+## Le spike clé composée — résolu
+
+Le Gate demandait de vérifier la faisabilité réelle de la clé étrangère
+composée `(organizationId, userId)` → `memberships(organizationId, userId)`
+avec détachement automatique. **Testé directement en base, pas supposé :**
+
+- `ON DELETE SET NULL` natif sur cette clé composée est **inviable** :
+  PostgreSQL met **toutes** les colonnes de la clé composée à `NULL`
+  simultanément — y compris `organizationId`, qui porte une contrainte
+  `NOT NULL`. Résultat reproduit : `ERROR: null value in column
+"organization_id" ... violates not-null constraint`.
+- **Repli confirmé qui fonctionne** : la clé composée reste posée (sans action
+  de suppression automatique — comportement par défaut, équivalent à
+  `NO ACTION`), et un **trigger** `BEFORE DELETE` sur `memberships` met
+  exclusivement `medecins.userId` à `NULL` pour les lignes correspondant à
+  l'`(organizationId, userId)` supprimé, sans toucher `organizationId`. Testé :
+  après suppression du membership, la fiche `medecins` survit, reste scopée à
+  son organisation, et `userId` repasse à `NULL`.
+- **Confirmé également** : un `userId` renseigné qui ne correspond à aucune
+  adhésion réelle dans cette organisation est refusé par la clé composée elle-
+  même (violation de contrainte) — l'intégrité référentielle fonctionne. Un
+  médecin externe (`userId` vide) reste toujours accepté sans qu'aucune
+  adhésion n'existe (comportement standard de PostgreSQL pour les clés
+  composées : une valeur `NULL` dans la clé dispense entièrement du contrôle).
+
+Ce résultat est documenté dans ADR-0016 et engage directement la migration de
+TASK-030 (voir découpage EA/TASK).
+
+## Modèle de données détaillé
+
+### Table `medecins`
+
+| Champ                                      | Type                     | Contrainte                      | Note                                                               |
+| ------------------------------------------ | ------------------------ | ------------------------------- | ------------------------------------------------------------------ |
+| `id`                                       | `uuid`                   | PK                              | `uuidv7()`, comme `patients.id`                                    |
+| `organizationId`                           | `uuid`                   | NOT NULL, FK `organizations.id` | scope                                                              |
+| `userId`                                   | `text`                   | nullable                        | FK composée, voir ci-dessous                                       |
+| `firstName`                                | `text`                   | NOT NULL                        |                                                                    |
+| `lastName`                                 | `text`                   | NOT NULL                        |                                                                    |
+| `specialty`                                | `text` (enum applicatif) | nullable                        | liste contrôlée simple, F.4                                        |
+| `inpe`                                     | `text`                   | nullable                        | 9 chiffres, validation non bloquante                               |
+| `numeroOrdre`                              | `text`                   | nullable                        | texte libre, aucune validation (F.3)                               |
+| `description`                              | `text`                   | nullable                        | usage interne pour ce Build                                        |
+| `phoneCountryCode` / `phoneNationalNumber` | `text`                   | nullable                        | même structure que Patient (ADR-0015)                              |
+| `email`                                    | `text`                   | nullable                        |                                                                    |
+| `city`                                     | `text`                   | nullable                        | vrai champ structuré (F.7), pas un texte libre                     |
+| `locationReference`                        | `text`                   | nullable                        | **réservé**, sans logique (même traitement que `nationalHealthId`) |
+| `createdAt` / `updatedAt` / `deletedAt`    | `timestamp`              | —                               |                                                                    |
+
+**Contraintes** :
+
+- `FOREIGN KEY (organizationId, userId) REFERENCES memberships(organizationId, userId)`
+  — sans action de suppression automatique (voir spike).
+- `UNIQUE (organizationId, inpe) WHERE inpe IS NOT NULL`
+- `UNIQUE (organizationId, numeroOrdre) WHERE numeroOrdre IS NOT NULL`
+- `specialty` contraint à une liste fixe (enum PostgreSQL ou `CHECK`, à trancher
+  en TASK) — valeurs de référence usuelles (médecine générale, pédiatrie,
+  gynécologie, cardiologie, dermatologie, ORL, ophtalmologie, psychiatrie,
+  radiologie, chirurgie générale — liste indicative, à valider avec le Product
+  Owner avant la migration, hors périmètre de cette Passe).
+
+**Champs obligatoires minimaux** : `firstName`, `lastName`, `organizationId`.
+Tout le reste optionnel, y compris l'identifiant professionnel (F.2).
+
+### Aucune modification de `memberships` ni `users`
+
+Le module ne touche pas au socle — il le référence uniquement.
+
+## Sécurité et isolation
+
+**Une seule table à sécuriser.** Les trois gestes s'appliquent intégralement :
+
+1. **Politique RLS forcée** sur `medecins`, même patron que
+   `patients_isolation` : `organization_id = NULLIF(current_setting('app.organization_id', true), '')::uuid`.
+2. **Fonction scopée** (`withOrganizationScope`) pour tout accès applicatif.
+3. **Test d'isolation dédié** prouvant le refus (pas seulement le succès) : un
+   médecin créé dans l'organisation A n'est jamais visible scopé sur
+   l'organisation B ; un contournement RLS brut échoue ; un `userId` d'une
+   autre organisation est refusé par la clé composée (contournement testé,
+   comme pour `responsiblePatientRecordId` chez Patient).
+
+**Aucune donnée commerciale/fiscale** dans le schéma — vérifié : aucun champ
+d'honoraires, de chiffre d'affaires ou de tarification n'apparaît ci-dessus.
+
+## API détaillée (conventions ADR-0008)
+
+| Méthode | Route                  | Permission | Note                                                                                                                                                                           |
+| ------- | ---------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POST`  | `/api/v1/medecins`     | `manage`   | création ; avertissement doux si INPE mal formé, jamais de rejet                                                                                                               |
+| `GET`   | `/api/v1/medecins/:id` | `read`     | lecture unique                                                                                                                                                                 |
+| `PATCH` | `/api/v1/medecins/:id` | `manage`   | modification partielle                                                                                                                                                         |
+| `GET`   | `/api/v1/medecins?q=`  | `read`     | recherche par nom (floue, réutilise l'index trigram déjà activé par Patient — migration 0009 — aucune nouvelle extension nécessaire, seulement un nouvel index sur `medecins`) |
+
+Enveloppe `{ data, meta }` en succès, `{ error }` en échec — identique à
+Patient. `meta.warnings` porte l'avertissement INPE mal formé, jamais un rejet.
+
+## Surface publique (`index.ts`)
+
+- `medecins` (schéma, pour les FK futures de Prescription/Orientation).
+- `findMedecinSummaryById(databaseService, organizationId, id)` — lecture
+  minimale.
+- Type `MedecinSummary` : `{ id, displayName, specialty, identifiantAffiche }`
+  — `identifiantAffiche` résout l'INPE si présent, sinon le numéro d'Ordre,
+  sinon vide (ordre de préférence cohérent avec F.1 : INPE = pivot).
+- **Aucune fonction d'écriture exportée** — même règle que Patient.
+
+## Découpage en Engineering Assets et TASK
+
+### EA-010 — Modèle de données Médecin
+
+- **TASK-038** — Schéma Drizzle `medecins` (colonnes d'identité, hors clé
+  composée). Dépend de : rien (module neuf). Tests : nullabilité des colonnes
+  (seuls firstName/lastName/organizationId requis).
+- **TASK-039** — Migration réelle : `CREATE TABLE medecins` + RLS forcée +
+  index d'unicité partiels (INPE, numéro d'Ordre). Dépend de : TASK-038.
+  Critère d'acceptation : `\d+ medecins` confirme `FORCE ROW LEVEL SECURITY`.
+- **TASK-040** — Clé composée vers `memberships` + trigger de détachement
+  (le repli du spike, ADR-0016). Dépend de : TASK-039. Tests : détachement
+  confirmé (organizationId survit, userId repasse à NULL) ; refus d'un userId
+  n'appartenant pas à l'organisation. Hors périmètre : toute UI de gestion du
+  rattachement.
+- **TASK-041** — Fonctions d'accès (`createMedecin`, `findMedecinById`,
+  `updateMedecin`) via `withOrganizationScope`. Dépend de : TASK-040.
+
+### EA-011 — Isolation, validation, permissions
+
+- **TASK-042** — Tests d'isolation dédiés (`medecin-isolation.spec.ts`),
+  même modèle que `patient-isolation.spec.ts` (TASK-023). Dépend de :
+  TASK-041.
+- **TASK-043** — Validation INPE (format 9 chiffres, non bloquante,
+  normalisation) — même patron que `cin-validation.ts`. Dépend de : TASK-038.
+  Hors périmètre : validation de format du numéro d'Ordre (F.3, aucune règle
+  n'existe).
+- **TASK-044** — Permissions `manage`/`read` sur la ressource `medecins`
+  (migration de données, même patron que TASK-024). Dépend de : rien
+  (indépendant du reste).
+
+### EA-012 — API, recherche, surface publique
+
+- **TASK-045** — Contrôleur CRUD (`create`/`findOne`/`update`). Dépend de :
+  TASK-041, TASK-043, TASK-044.
+- **TASK-046** — Recherche par nom (index trigram sur `medecins`, réutilise
+  l'extension `unaccent`/`pg_trgm` déjà activée — migration dédiée pour le
+  seul index, pas de nouvelle extension). Dépend de : TASK-041. Point de
+  vigilance signalé par avance : mesurer sur volume réaliste, comme TASK-026
+  pour Patient — probable même limite RLS/index GIN déjà documentée (issue
+  #23), à vérifier plutôt qu'à supposer résolue par avance.
+- **TASK-047** — Surface publique `index.ts` (`MedecinSummary`,
+  `findMedecinSummaryById`). Dépend de : TASK-041.
+
+## Registre des risques
+
+| Risque                                                                  | Impact                                                           | Mitigation                                                                                     |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Duplication d'identité pour un médecin multi-organisations              | Coût de maintenance (mettre à jour le nom dans plusieurs fiches) | Accepté explicitement (ADR-0017), même arbitrage que Patient                                   |
+| Format du numéro d'Ordre inconnu                                        | Impossible de valider même en avertissement                      | Accepté (F.3) ; ADR de révision si un format émerge sur le terrain                             |
+| Mécanisme clé composée + trigger moins courant qu'une simple FK         | Risque de mauvaise compréhension par un futur développeur        | Documenté en détail dans ADR-0016 et dans le code (commentaires), spike reproductible conservé |
+| Recherche floue sur `medecins` à volume réaliste                        | Même limite RLS/index GIN déjà connue pour Patient (issue #23)   | Mesurer dès TASK-046, ne pas supposer réglé                                                    |
+| Liste contrôlée des spécialités non encore validée par le Product Owner | Retravail si la liste proposée est incomplète/incorrecte         | Signaler explicitement avant la migration (TASK-039), ne pas la figer sans validation          |
+
+## Recommandation finale
+
+Ordre de développement conseillé : **EA-010 → EA-011 → EA-012**, dans cet
+ordre — chaque EA dépend structurellement de la précédente (le modèle avant la
+sécurité, la sécurité avant l'API). Au sein d'EA-010, TASK-038 à TASK-041 sont
+strictement séquentielles (chacune dépend de la précédente). EA-011 et EA-012
+peuvent partiellement se chevaucher (TASK-044, les permissions, ne dépend de
+rien et peut démarrer en parallèle dès l'ouverture d'EA-010, comme cela avait
+été fait pour Patient).
+
+Aucun blocage identifié empêchant de démarrer le développement dès validation
+de ce document.
+
+---
+
+**Fin de la Passe 2.** Cette spécification est soumise à validation avant
+l'ouverture du développement TASK par TASK.
