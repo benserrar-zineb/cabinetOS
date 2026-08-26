@@ -497,6 +497,13 @@ Patient. `meta.warnings` porte l'avertissement INPE mal formé, jamais un rejet.
 | Recherche floue sur `medecins` à volume réaliste                        | Même limite RLS/index GIN déjà connue pour Patient (issue #23)   | Mesurer dès TASK-046, ne pas supposer réglé                                                    |
 | Liste contrôlée des spécialités non encore validée par le Product Owner | Retravail si la liste proposée est incomplète/incorrecte         | Signaler explicitement avant la migration (TASK-039), ne pas la figer sans validation          |
 
+## Ce qui reste hors périmètre
+
+**Pas d'écran.** Le design des interfaces médecin (création, consultation,
+recherche de la fiche) est piloté séparément par le Product Owner, en aval du
+modèle validé ici — comme pour Patient. Cette Passe 2 ne spécifie que le
+modèle, l'API et la sécurité.
+
 ## Recommandation finale
 
 Ordre de développement conseillé : **EA-010 → EA-011 → EA-012**, dans cet
