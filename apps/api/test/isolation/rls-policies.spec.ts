@@ -88,6 +88,13 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
         sql`INSERT INTO patient_records (id, organization_id, patient_id, sequential_number) VALUES (${uuidv7()}, ${orgId}, ${patientId}, 1)`,
       ),
     );
+    // medecins : pas de fonctions de requete (TASK-041 a venir), insertion directe
+    // pour verifier la politique RLS ajoutee en TASK-039.
+    await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(
+        sql`INSERT INTO medecins (id, organization_id, first_name, last_name) VALUES (${uuidv7()}, ${orgId}, 'RLS', 'TestMedecin')`,
+      ),
+    );
   });
 
   afterAll(async () => {
@@ -102,6 +109,7 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
         tx.execute(sql`DELETE FROM notifications WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM file_objects WHERE organization_id = ${orgId}`),
         tx.execute(sql`DELETE FROM patients WHERE organization_id = ${orgId}`),
+        tx.execute(sql`DELETE FROM medecins WHERE organization_id = ${orgId}`),
       ]),
     );
     // audit_events est append-only pour cabinetos_app depuis BUILD-002 : sorti du
@@ -123,6 +131,7 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
     ['file_objects'],
     ['patients'],
     ['patient_records'],
+    ['medecins'],
   ])(
     'une requete SQL directe sur %s, sans SET LOCAL, ne retourne aucune ligne (donnee pourtant presente)',
     async (table) => {
@@ -153,5 +162,10 @@ describe('Politiques RLS PostgreSQL (TASK-010)', () => {
       tx.execute(sql`SELECT * FROM patient_records WHERE organization_id = ${orgId}`),
     );
     expect(patientRecordRows.rows.length).toBeGreaterThan(0);
+
+    const medecinRows = await databaseService.withOrganizationScope(orgId, (tx) =>
+      tx.execute(sql`SELECT * FROM medecins WHERE organization_id = ${orgId}`),
+    );
+    expect(medecinRows.rows.length).toBeGreaterThan(0);
   });
 });
