@@ -11,6 +11,7 @@ export default defineConfig({
     './src/modules/settings/infrastructure/schema.ts',
     './src/modules/storage/infrastructure/schema.ts',
     './src/business/patient/infrastructure/schema.ts',
+    './src/business/medecin/infrastructure/schema.ts',
   ],
   out: '../../db/migrations',
   dbCredentials: {
