@@ -387,6 +387,8 @@ TASK-030 (voir découpage EA/TASK).
 
 - `FOREIGN KEY (organizationId, userId) REFERENCES memberships(organizationId, userId)`
   — sans action de suppression automatique (voir spike).
+- `UNIQUE (organizationId, userId) WHERE userId IS NOT NULL` — empêche qu'un
+  même utilisateur ait deux fiches `medecins` dans la même organisation
 - `UNIQUE (organizationId, inpe) WHERE inpe IS NOT NULL`
 - `UNIQUE (organizationId, numeroOrdre) WHERE numeroOrdre IS NOT NULL`
 - `specialty` contraint à une liste fixe (enum PostgreSQL ou `CHECK`, à trancher
@@ -448,7 +450,8 @@ Patient. `meta.warnings` porte l'avertissement INPE mal formé, jamais un rejet.
   composée). Dépend de : rien (module neuf). Tests : nullabilité des colonnes
   (seuls firstName/lastName/organizationId requis).
 - **TASK-039** — Migration réelle : `CREATE TABLE medecins` + RLS forcée +
-  index d'unicité partiels (INPE, numéro d'Ordre). Dépend de : TASK-038.
+  index d'unicité partiels (`userId`, INPE, numéro d'Ordre). Dépend de :
+  TASK-038.
   Critère d'acceptation : `\d+ medecins` confirme `FORCE ROW LEVEL SECURITY`.
 - **TASK-040** — Clé composée vers `memberships` + trigger de détachement
   (le repli du spike, ADR-0016). Dépend de : TASK-039. Tests : détachement
