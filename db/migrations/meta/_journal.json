@@ -85,6 +85,20 @@
       "when": 1787773602274,
       "tag": "0011_medecin-permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1787781450848,
+      "tag": "0012_medecin-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787781466423,
+      "tag": "0013_medecin-rls-and-unique-indexes",
+      "breakpoints": true
     }
   ]
 }
