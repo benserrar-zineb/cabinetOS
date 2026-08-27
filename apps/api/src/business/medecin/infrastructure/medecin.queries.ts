@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { DatabaseService } from '../../../modules/shared/database/database.service';
 import { medecins, medecinSpecialtyEnum } from './schema';
+import { validateInpe } from '../presentation/inpe-validation';
 
 // TASK-041 (BUILD-003, EA-010) : fonctions d acces, toutes via withOrganizationScope
 // (ADR-0005) -- aucun acces direct a tx/db hors de ce garde-fou, meme discipline que
@@ -10,10 +11,19 @@ import { medecins, medecinSpecialtyEnum } from './schema';
 // compteur de numero de dossier (le rattachement organisationnel vit dans
 // memberships, ADR-0016 ; aucun geste de numerotation propre a medecins).
 //
-// Hors perimetre ici (arrive en TASK-043) : la validation/normalisation du format
-// INPE. Ces fonctions acceptent la valeur telle que fournie par l appelant -- la
-// couche de validation s enfichera par-dessus, meme patron que
-// normalizeIdentityInput pour Patient.
+// TASK-043 : l INPE est normalise ICI, au moment de l ecriture -- jamais la valeur
+// brute saisie. Meme discipline que le CIN/telephone pour Patient (TASK-026) :
+// c est cette valeur normalisee qui garantit que l unicite scopee (TASK-039)
+// retrouve la meme fiche quelle que soit la faaon dont l INPE a ete saisi.
+// Jamais bloquant -- un format invalide est stocke quand meme (F.1, F.2).
+
+function normalizeMedecinInput<T extends { inpe?: string }>(data: T): T {
+  const normalized = { ...data };
+  if (normalized.inpe) {
+    normalized.inpe = validateInpe(normalized.inpe).normalized;
+  }
+  return normalized;
+}
 
 export type MedecinSpecialty = (typeof medecinSpecialtyEnum.enumValues)[number];
 
@@ -40,9 +50,10 @@ export async function createMedecin(
   data: CreateMedecinInput,
 ) {
   return databaseService.withOrganizationScope(organizationId, async (tx) => {
+    const normalized = normalizeMedecinInput(data);
     const [medecin] = await tx
       .insert(medecins)
-      .values({ ...data, organizationId })
+      .values({ ...normalized, organizationId })
       .returning();
     return medecin;
   });
@@ -66,9 +77,10 @@ export async function updateMedecin(
   data: UpdateMedecinInput,
 ) {
   return databaseService.withOrganizationScope(organizationId, async (tx) => {
+    const normalized = normalizeMedecinInput(data);
     const [updated] = await tx
       .update(medecins)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...normalized, updatedAt: new Date() })
       .where(eq(medecins.id, id))
       .returning();
     return updated;
