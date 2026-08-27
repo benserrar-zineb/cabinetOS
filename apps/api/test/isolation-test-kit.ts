@@ -41,3 +41,8 @@ export {
   updatePatient,
   updatePatientRecordStatus,
 } from '../src/business/patient/infrastructure/patient.queries';
+export {
+  createMedecin,
+  findMedecinById,
+  updateMedecin,
+} from '../src/business/medecin/infrastructure/medecin.queries';
