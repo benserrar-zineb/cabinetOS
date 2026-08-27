@@ -99,6 +99,13 @@
       "when": 1787781466423,
       "tag": "0013_medecin-rls-and-unique-indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1787827958898,
+      "tag": "0014_medecin-membership-fk-and-detach-trigger",
+      "breakpoints": true
     }
   ]
 }
