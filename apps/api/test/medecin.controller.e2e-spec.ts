@@ -205,6 +205,31 @@ describe('MedecinController (e2e, TASK-045)', () => {
     expect(res.status).toBe(404);
   });
 
+  it('GET /medecins?q= retrouve un medecin malgre une variante d accent (TASK-046)', async () => {
+    await fetch(`${httpServer}/api/v1/medecins`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie, 'x-organization-id': orgId },
+      body: JSON.stringify({ firstName: 'Fatima', lastName: 'Rechercheq' }),
+    });
+
+    const res = await fetch(
+      `${httpServer}/api/v1/medecins?q=${encodeURIComponent('fatma rechercheq')}`,
+      { headers: { Cookie: cookie, 'x-organization-id': orgId } },
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.some((m: { lastName: string }) => m.lastName === 'Rechercheq')).toBe(true);
+  });
+
+  it('GET /medecins sans q renvoie une liste vide (pas de recherche par defaut)', async () => {
+    const res = await fetch(`${httpServer}/api/v1/medecins`, {
+      headers: { Cookie: cookie, 'x-organization-id': orgId },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data).toEqual([]);
+  });
+
   it('sans la permission requise, l acces est refuse (403) -- meme mecanique que TASK-016', async () => {
     const res = await fetch(`${httpServer}/api/v1/medecins`, {
       method: 'POST',
