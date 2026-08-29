@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { CreateMedecinDto } from './create-medecin.dto';
 import { UpdateMedecinDto } from './update-medecin.dto';
 import { validateInpe } from './inpe-validation';
 import { createMedecin, findMedecinById, updateMedecin } from '../infrastructure/medecin.queries';
+import { searchMedecinsByName } from '../infrastructure/medecin-search.queries';
 
 // TASK-045 (BUILD-003, EA-012) : premier controleur reel du module Medecin --
 // memes conventions que Patient (TASK-025) : prefixe /api/v1/ deja applique
@@ -37,7 +39,10 @@ import { createMedecin, findMedecinById, updateMedecin } from '../infrastructure
 // le detachement du compte est gere par le trigger TASK-040, jamais une
 // suppression manuelle de la fiche.
 //
-// Hors perimetre ici : recherche par nom (TASK-046), surface publique (TASK-047).
+// TASK-046 : recherche par nom (F.7), meme mecanisme que Patient (TASK-026) --
+// criteres combines (INPE, numeroOrdre) reportes au futur referencement.
+//
+// Hors perimetre ici : surface publique (TASK-047).
 // Hors perimetre du module : design des ecrans (pilote separement, Product Owner).
 
 function isInvalidMembershipReference(err: unknown): boolean {
@@ -115,5 +120,15 @@ export class MedecinController {
       throw new NotFoundException('Medecin introuvable.');
     }
     return { data: updated, meta: warnings.length > 0 ? { warnings } : {} };
+  }
+
+  @Get()
+  @RequirePermission('read', 'medecins')
+  async search(@CurrentOrganizationId() organizationId: string, @Query('q') q?: string) {
+    if (q) {
+      const results = await searchMedecinsByName(this.databaseService, organizationId, q);
+      return { data: results, meta: {} };
+    }
+    return { data: [], meta: {} };
   }
 }
