@@ -86,3 +86,45 @@ export async function updateMedecin(
     return updated;
   });
 }
+
+// TASK-047 (BUILD-003, EA-012) : surface minimale destinee aux futurs modules
+// Business (Consultation, Agenda, Prescription) -- juste de quoi afficher/
+// referencer un medecin, jamais de quoi le modifier. Aucune fonction d ecriture
+// n est exportee par index.ts.
+//
+// Contrairement a Patient (patients + patientRecords, TASK-027), une seule
+// table medecins ici (ADR-0016) -- aucune jointure necessaire, l id recherche
+// est directement celui de la fiche medecin.
+
+export interface MedecinSummary {
+  id: string;
+  displayName: string;
+  specialty: MedecinSpecialty | null;
+}
+
+export async function findMedecinSummaryById(
+  databaseService: DatabaseService,
+  organizationId: string,
+  medecinId: string,
+): Promise<MedecinSummary | undefined> {
+  return databaseService.withOrganizationScope(organizationId, async (tx) => {
+    const [row] = await tx
+      .select({
+        id: medecins.id,
+        firstName: medecins.firstName,
+        lastName: medecins.lastName,
+        specialty: medecins.specialty,
+      })
+      .from(medecins)
+      .where(eq(medecins.id, medecinId));
+
+    if (!row) {
+      return undefined;
+    }
+    return {
+      id: row.id,
+      displayName: `${row.firstName} ${row.lastName}`,
+      specialty: row.specialty,
+    };
+  });
+}

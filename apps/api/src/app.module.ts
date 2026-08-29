@@ -8,7 +8,7 @@ import { NotificationsModule } from './modules/notifications';
 import { SettingsModule } from './modules/settings';
 import { StorageModule } from './modules/storage';
 import { PatientModule } from './business/patient';
-import { MedecinModule } from './business/medecin/medecin.module';
+import { MedecinModule } from './business/medecin';
 
 @Module({
   imports: [
