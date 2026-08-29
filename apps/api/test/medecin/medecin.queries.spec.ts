@@ -8,6 +8,7 @@ import {
   createMedecin,
   findMedecinById,
   updateMedecin,
+  findMedecinSummaryById,
 } from '../../src/business/medecin/infrastructure/medecin.queries';
 
 // TASK-041 (BUILD-003, EA-010) : fonctions d acces de base, meme discipline que
@@ -93,5 +94,37 @@ describe('medecin.queries (TASK-041)', () => {
     expect(updated?.city).toBe('Rabat');
     expect(updated?.specialty).toBe('pediatrie');
     expect(updated?.firstName).toBe('Hicham'); // inchange
+  });
+
+  it('findMedecinSummaryById (TASK-047) renvoie un nom affichable et la specialite', async () => {
+    const created = await createMedecin(databaseService, orgA.id, {
+      firstName: 'Sara',
+      lastName: 'Summary',
+      specialty: 'dermatologie',
+    });
+    const summary = await findMedecinSummaryById(databaseService, orgA.id, created.id);
+    expect(summary).toEqual({
+      id: created.id,
+      displayName: 'Sara Summary',
+      specialty: 'dermatologie',
+    });
+  });
+
+  it('findMedecinSummaryById renvoie undefined pour une fiche absente', async () => {
+    const summary = await findMedecinSummaryById(
+      databaseService,
+      orgA.id,
+      '00000000-0000-0000-0000-000000000000',
+    );
+    expect(summary).toBeUndefined();
+  });
+
+  it('findMedecinSummaryById ne retrouve pas une fiche depuis une AUTRE organisation (isolation)', async () => {
+    const created = await createMedecin(databaseService, orgA.id, {
+      firstName: 'Yassine',
+      lastName: 'AutreOrg',
+    });
+    const summary = await findMedecinSummaryById(databaseService, orgB.id, created.id);
+    expect(summary).toBeUndefined();
   });
 });

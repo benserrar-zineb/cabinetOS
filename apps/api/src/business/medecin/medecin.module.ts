@@ -6,12 +6,8 @@ import { MedecinController } from './presentation/medecin.controller';
 // que PatientModule (TASK-025) -- DatabaseService doit etre injectable dans
 // MedecinController.
 //
-// Enregistre pour l instant par chemin direct dans app.module.ts (pas encore via
-// un index.ts, contrairement a Patient) -- TASK-047 introduira index.ts (surface
-// publique du module, MedecinSummary/findMedecinSummaryById) et app.module.ts
-// basculera alors sur cet import, comme pour Patient. Aucune regle
-// check:architecture ne l impose plus tot (le Core Platform ne depend jamais de
-// Business, mais app.module.ts n est ni Core ni Business -- rien ne l interdit).
+// TASK-047 : enregistre desormais via index.ts (comme Patient) -- app.module.ts
+// importe ce module par la surface publique, pas par un chemin direct.
 
 @Module({
   imports: [SharedModule],
