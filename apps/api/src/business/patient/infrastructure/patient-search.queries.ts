@@ -29,10 +29,10 @@ export async function searchPatientsByName(
   return databaseService.withOrganizationScope(organizationId, async (tx) => {
     const result = await tx.execute(sql`
       SELECT id, first_name AS "firstName", last_name AS "lastName", date_of_birth AS "dateOfBirth",
-        similarity(patient_search_unaccent(lower(first_name || ' ' || last_name)), patient_search_unaccent(lower(${query}))) AS score
+        similarity(search_unaccent(lower(first_name || ' ' || last_name)), search_unaccent(lower(${query}))) AS score
       FROM patients
       WHERE organization_id = ${organizationId}
-        AND patient_search_unaccent(lower(first_name || ' ' || last_name)) % patient_search_unaccent(lower(${query}))
+        AND search_unaccent(lower(first_name || ' ' || last_name)) % search_unaccent(lower(${query}))
       ORDER BY score DESC
       LIMIT ${limit}
     `);
